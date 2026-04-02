@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Archivos Parroquiales</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #print-section, #print-section * { visibility: visible; }
+      #print-section { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+      .no-print { display: none !important; }
+    }
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #1e3a8a; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans h-screen flex flex-col">
+
+  <!-- ==================== LOGIN ==================== -->
+  <div id="login-screen" class="flex-1 flex items-center justify-center bg-blue-900">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-96">
+      <div class="text-center mb-6">
+        <i class="fas fa-church text-4xl text-blue-800 mb-2"></i>
+        <h2 class="text-2xl font-bold text-gray-800">Archivos Parroquiales</h2>
+        <p class="text-sm text-gray-500">Sistema de Gestión</p>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Usuario</label>
+          <input type="text" id="username" class="mt-1 w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+          <input type="password" id="password" class="mt-1 w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div id="login-error" class="text-red-500 text-sm hidden font-medium">Credenciales incorrectas.</div>
+        <button onclick="iniciarSesion()" class="w-full bg-blue-800 text-white p-2 rounded hover:bg-blue-700 transition font-semibold flex justify-center items-center">
+          <span id="btn-login-text">Ingresar</span>
+          <div id="login-loader" class="loader ml-2 hidden" style="width: 20px; height: 20px; border-width: 3px;"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DASHBOARD ==================== -->
+  <div id="app-screen" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+    <!-- Header -->
+    <header class="bg-blue-900 text-white p-4 shadow flex justify-between items-center no-print">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-church text-2xl"></i>
+        <h1 class="text-xl font-bold">Buscador de Partidas de Bautismo</h1>
+      </div>
+      <button onclick="cerrarSesion()" class="text-blue-200 hover:text-white transition"><i class="fas fa-sign-out-alt mr-1"></i> Cerrar Sesión</button>
+    </header>
+
+    <!-- Filtros -->
+    <div class="p-6 bg-white border-b no-print shadow-sm z-10">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Búsqueda Inteligente</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fas fa-search"></i></span>
+            <input type="text" id="search-input" class="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-blue-800" placeholder="Buscar por Nombre, ID o Padres...">
+          </div>
+        </div>
+        <div class="w-full md:w-48">
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Año</label>
+          <input type="number" id="year-filter" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-800" placeholder="Ej. 2017">
+        </div>
+        <div class="flex items-end gap-2">
+          <button onclick="ejecutarBusqueda()" class="bg-blue-800 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow font-medium">Buscar</button>
+          <button onclick="limpiarFiltros()" class="bg-gray-200 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-300 transition" title="Limpiar"><i class="fas fa-eraser"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="flex-1 overflow-auto p-6 bg-gray-50 no-print">
+      <div id="loading-indicator" class="hidden flex flex-col items-center justify-center mt-10">
+        <div class="loader mb-4"></div>
+        <p class="text-gray-500">Conectando con la base de datos...</p>
+      </div>
+
+      <div id="table-container" class="bg-white rounded-lg shadow overflow-hidden hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación (L/F/N)</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre del Bautizado</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Bautizo</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="results-body" class="bg-white divide-y divide-gray-200"></tbody>
+        </table>
+        <div id="no-results" class="hidden p-8 text-center text-gray-500">No se encontraron registros.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE IMPRESIÓN ==================== -->
+  <div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[95vh]">
+      <div class="bg-blue-800 text-white p-4 flex justify-between items-center">
+        <h3 class="text-lg font-bold">Vista de Partida</h3>
+        <button onclick="cerrarModal()" class="text-white hover:text-gray-300 text-2xl leading-none">&times;</button>
+      </div>
+      
+      <div id="print-section" class="p-8 overflow-y-auto bg-white flex-1 text-gray-800">
+        <div class="text-center mb-8 border-b-2 border-blue-900 pb-4">
+          <h2 class="text-2xl font-bold uppercase">PARROQUIA "SAN PEDRO APÓSTOL" DE TACNA</h2>
+          <p class="text-lg mt-1 font-serif">Certificado de Bautismo</p>
+        </div>
+
+        <div class="flex justify-between text-sm mb-6 bg-gray-100 p-3 rounded border">
+          <div><strong>Código:</strong> <span id="det-id"></span></div>
+          <div><strong>Libro:</strong> <span id="det-libro"></span></div>
+          <div><strong>Foja:</strong> <span id="det-foja"></span></div>
+          <div><strong>Nro:</strong> <span id="det-num"></span></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
+          <div class="col-span-2">
+            <p class="text-sm text-gray-500 uppercase">Nombre Completo del Bautizado</p>
+            <p class="text-xl font-bold border-b border-gray-300 pb-1" id="det-nombre-completo"></p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 uppercase">Fecha de Nacimiento</p>
+            <p class="font-medium text-lg border-b border-gray-300 pb-1" id="det-fecha-nac"></p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 uppercase">Lugar de Nacimiento</p>
+            <p class="font-medium text-lg border-b border-gray-300 pb-1" id="det-lugar-nac"></p>
+          </div>
+
+          <div class="col-span-2 mt-4"><h4 class="font-bold text-blue-900 uppercase text-sm mb-2">Padres y Padrinos</h4></div>
+          <div>
+            <p class="text-sm text-gray-500 uppercase">Padre</p>
+            <p class="font-medium border-b border-gray-300 pb-1 min-h-[24px]" id="det-padre"></p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 uppercase">Madre</p>
+            <p class="font-medium border-b border-gray-300 pb-1 min-h-[24px]" id="det-madre"></p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 uppercase">Padrino</p>
+            <p class="font-medium border-b border-gray-300 pb-1 min-h-[24px]" id="det-padrino"></p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 uppercase">Madrina</p>
+            <p class="font-medium border-b border-gray-300 pb-1 min-h-[24px]" id="det-madrina"></p>
+          </div>
+
+          <div class="col-span-2 mt-4"><h4 class="font-bold text-blue-900 uppercase text-sm mb-2">Datos del Sacramento</h4></div>
+          <div>
+            <p class="text-sm text-gray-500 uppercase">Fecha de Bautizo</p>
+            <p class="font-medium text-lg border-b border-gray-300 pb-1" id="det-fecha-bau"></p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 uppercase">Ministro</p>
+            <p class="font-medium border-b border-gray-300 pb-1 min-h-[24px]" id="det-ministro"></p>
+          </div>
+          <div class="col-span-2">
+            <p class="text-sm text-gray-500 uppercase">Lugar de Bautizo</p>
+            <p class="font-medium border-b border-gray-300 pb-1 min-h-[24px]" id="det-lugar-bau"></p>
+          </div>
+        </div>
+
+        <div class="mt-6 bg-yellow-50 p-4 border border-yellow-200 rounded">
+          <p class="text-sm text-gray-600 font-bold uppercase mb-1">Notas Marginales</p>
+          <p class="text-sm italic" id="det-notas"></p>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 px-6 py-4 border-t flex justify-end gap-3 no-print">
+        <button onclick="cerrarModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancelar</button>
+        <button onclick="imprimirPartida()" class="px-6 py-2 bg-blue-800 text-white rounded hover:bg-blue-700 shadow font-bold"><i class="fas fa-print mr-1"></i> Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =======================================================
+   
+    const API_URL = "https://script.google.com/macros/s/AKfycbxJ1cIGqUm24JSlX6kmGbE84lNpg-_tnhKXOyQK1Enr9blUiyjtlqkboDhOrt709x_c/exec"; 
+    // =======================================================
+
+    let datosActuales =[];
+
+    // ====== LOGIN CON FETCH ======
+    async function iniciarSesion() {
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+      
+      manejarUI('login', true);
+
+      try {
+        const respuesta = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ accion: 'login', usuario: u, password: p })
+        });
+        
+        const data = await respuesta.json();
+        manejarUI('login', false);
+
+        if(data.success) {
+          document.getElementById('login-screen').classList.add('hidden');
+          document.getElementById('app-screen').classList.remove('hidden');
+        } else {
+          document.getElementById('login-error').classList.remove('hidden');
+        }
+      } catch (e) {
+        alert("Error de conexión. Revisa que tu API_URL esté correcta.");
+        manejarUI('login', false);
+      }
+    }
+
+    // ====== BÚSQUEDA CON FETCH ======
+    async function ejecutarBusqueda() {
+      const termino = document.getElementById('search-input').value;
+      const anio = document.getElementById('year-filter').value;
+      
+      if(termino.length < 3 && anio === "") return alert("Ingresa al menos 3 letras o un año.");
+
+      manejarUI('busqueda', true);
+
+      try {
+        const respuesta = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ accion: 'buscar', termino: termino, anio: anio })
+        });
+        
+        const resData = await respuesta.json();
+        mostrarResultados(resData.data);
+      } catch (e) {
+        alert("Error al buscar: " + e);
+        manejarUI('busqueda', false);
+      }
+    }
+
+    function mostrarResultados(resultados) {
+      manejarUI('busqueda', false);
+      const container = document.getElementById('table-container');
+      const tbody = document.getElementById('results-body');
+      
+      datosActuales = resultados; 
+      tbody.innerHTML = '';
+
+      if (!resultados || resultados.length === 0) {
+        container.classList.remove('hidden');
+        document.getElementById('no-results').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('no-results').classList.add('hidden');
+      container.classList.remove('hidden');
+
+      resultados.forEach((fila, index) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-blue-50 transition cursor-pointer";
+        tr.onclick = () => abrirModalDetalle(index);
+        
+        tr.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-900">${fila.id || ""}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">L:${fila.nro_libro || ""} / F:${fila.foja || ""} / N:${fila.numero || ""}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${fila.nombre_completo || ""}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${fila.fecha_bautizo || ""}</td>
+          <td class="px-6 py-4 text-center"><button class="text-blue-600 bg-blue-100 px-3 py-1 rounded-full"><i class="fas fa-eye"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ====== LLENAR EL MODAL ======
+    function abrirModalDetalle(index) {
+      const d = datosActuales[index];
+      
+      // Llenamos los datos (Si no hay dato, se pone "" automáticamente en lugar de "-----")
+      document.getElementById('det-id').innerText = d.id || "";
+      document.getElementById('det-libro').innerText = d.nro_libro || "";
+      document.getElementById('det-foja').innerText = d.foja || "";
+      document.getElementById('det-num').innerText = d.numero || "";
+      
+      document.getElementById('det-nombre-completo').innerText = d.nombre_completo || "";
+      document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
+      document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
+      
+      document.getElementById('det-padre').innerText = d.padre || "";
+      document.getElementById('det-madre').innerText = d.madre || "";
+      document.getElementById('det-padrino').innerText = d.padrino || "";
+      document.getElementById('det-madrina').innerText = d.madrina || "";
+      
+      document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
+      document.getElementById('det-ministro').innerText = d.ministro || "";
+      document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
+      
+      document.getElementById('det-notas').innerText = (d.nota_marginal && d.nota_marginal !== "NINGUNA.") ? d.nota_marginal : "Sin notas marginales.";
+
+      document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    // ====== EVENTOS Y UTILIDADES ======
+    document.getElementById('search-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') ejecutarBusqueda(); });
+    
+    function cerrarModal() { document.getElementById('detail-modal').classList.add('hidden'); }
+    function imprimirPartida() { window.print(); }
+    function limpiarFiltros() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('year-filter').value = '';
+      document.getElementById('table-container').classList.add('hidden');
+    }
+    function cerrarSesion() {
+      document.getElementById('app-screen').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('username').value = ''; document.getElementById('password').value = '';
+      limpiarFiltros();
+    }
+    function manejarUI(proceso, cargando) {
+      if(proceso === 'login') {
+        document.getElementById('btn-login-text').classList.toggle('hidden', cargando);
+        document.getElementById('login-loader').classList.toggle('hidden', !cargando);
+        if(cargando) document.getElementById('login-error').classList.add('hidden');
+      } else {
+        document.getElementById('table-container').classList.add('hidden');
+        document.getElementById('loading-indicator').classList.toggle('hidden', !cargando);
+      }
+    }
+  </script>
+</body>
+</html>
