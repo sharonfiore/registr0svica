@@ -346,7 +346,7 @@
 
       let btnGenerar = document.querySelector(".btn-success");
       let textoOriginal = btnGenerar.innerHTML;
-      btnGenerar.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Generando y abriendo PDF...`;
+      btnGenerar.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Generando Partida...`;
       btnGenerar.disabled = true;
 
       try {
@@ -359,18 +359,16 @@
         if(data.success) {
           modalDetalle.hide();
           
-          // =====================================================
-          // MAGIA AQUÍ: Abre la nueva pestaña directamente
-          // La mayoría de los navegadores abrirán su lector PDF
-          // listo para presionar Ctrl+P o el botón Imprimir
-          // =====================================================
+          // ESTA ES LA CLAVE: 
+          // GitHub recibe la señal de éxito de Apps Script y "dispara" la impresión
+          // Se abrirá una pestaña con el PDF ya formateado por Apps Script listo para el botón "Imprimir"
           window.open(data.url, '_blank');
           
         } else {
-          alert("Error del servidor: " + data.message);
+          alert("Error: " + data.message);
         }
       } catch(e) {
-        alert("Error al conectar con Google Sheets.");
+        alert("Error de comunicación con el servidor.");
       } finally {
         btnGenerar.innerHTML = textoOriginal;
         btnGenerar.disabled = false;
