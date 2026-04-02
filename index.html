@@ -334,7 +334,6 @@
     async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal) {
       const d = registroSeleccionado;
       
-      // Armamos el paquete que enviaremos a Apps Script
       let datosParaPlantilla = {
         libro: d.nro_libro, foja: d.foja, numero: d.numero,
         nombres: d.nombres, apellidos: d.apellidos,
@@ -345,10 +344,9 @@
         notas: d.nota_marginal, anotaciones: d.anotaciones
       };
 
-      // Cambiamos botón a estado de carga
       let btnGenerar = document.querySelector(".btn-success");
       let textoOriginal = btnGenerar.innerHTML;
-      btnGenerar.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Generando...`;
+      btnGenerar.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Generando y abriendo PDF...`;
       btnGenerar.disabled = true;
 
       try {
@@ -360,10 +358,14 @@
         
         if(data.success) {
           modalDetalle.hide();
-          // Confirmación y abrir la pestaña
-          if(confirm("Partida generada con éxito.\n\n¿Deseas abrir la hoja PlantillaPartida ahora?")) {
-            window.open(data.url, '_blank');
-          }
+          
+          // =====================================================
+          // MAGIA AQUÍ: Abre la nueva pestaña directamente
+          // La mayoría de los navegadores abrirán su lector PDF
+          // listo para presionar Ctrl+P o el botón Imprimir
+          // =====================================================
+          window.open(data.url, '_blank');
+          
         } else {
           alert("Error del servidor: " + data.message);
         }
@@ -379,6 +381,9 @@
       if(proceso === 'login') { document.getElementById('btn-login').classList.toggle('d-none', cargando); document.getElementById('btn-loading').classList.toggle('d-none', !cargando); if(cargando) document.getElementById('login-error').classList.add('d-none'); } 
       else { document.getElementById('table-container').classList.add('d-none'); document.getElementById('no-results').classList.add('d-none'); document.getElementById('loading-indicator').classList.toggle('d-none', !cargando); }
     }
+
+
+    
   </script>
 </body>
 </html>
