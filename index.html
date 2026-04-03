@@ -202,6 +202,22 @@
       font-weight: 700;
       width: 100%;
     }
+    /* Busca .offcanvas-custom y cambia el width a 600px */
+    .offcanvas-custom {
+      width: 600px !important; /* Lo hicimos un poco más ancho */
+      border-left: none;
+      box-shadow: -10px 0 40px rgba(0,0,0,0.1);
+      background: #f8fafd;
+    }
+    
+    /* Busca .detail-section y reduce el padding de 1.5rem a 0.8rem */
+    .detail-section {
+      background: white;
+      border-radius: 16px;
+      padding: 0.8rem; /* Reducimos el espacio interno del cuadradito */
+      margin-bottom: 0.8rem; /* Reducimos la separación entre cuadraditos */
+      border: 1px solid rgba(0,0,0,0.03);
+    }
   </style>
 </head>
 <body>
@@ -313,91 +329,88 @@
       <h5 class="offcanvas-title fw-bold text-parroquia" id="mod-head-nombre">Expediente</h5>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body p-4">
-  
-      <!-- 1. Cifras: Libro, Foja, Partida (Más pequeños) -->
-      <div class="d-flex gap-2 mb-4">
-        <div class="detail-section flex-grow-1 text-center py-2"> <!-- py-2 reduce altura -->
+    <!-- Cambiamos p-4 por p-3 en el body del panel para ganar espacio en los bordes -->
+    <div class="offcanvas-body p-3">
+      
+      <!-- Reducimos mb-4 a mb-2 para pegar más los cuadros de arriba -->
+      <div class="d-flex gap-2 mb-2">
+        <div class="detail-section flex-grow-1 text-center py-1"> <!-- py-1 para que sea más flaco -->
           <div class="detail-label">Libro</div>
-          <div class="detail-value fs-6" id="det-libro"></div> <!-- fs-6 para texto más pequeño -->
+          <div class="detail-value fs-6" id="det-libro"></div>
         </div>
-        <div class="detail-section flex-grow-1 text-center py-2">
+        <div class="detail-section flex-grow-1 text-center py-1">
           <div class="detail-label">Foja</div>
           <div class="detail-value fs-6" id="det-foja"></div>
         </div>
-        <div class="detail-section flex-grow-1 text-center py-2">
+        <div class="detail-section flex-grow-1 text-center py-1">
           <div class="detail-label">Partida</div>
           <div class="detail-value fs-6 text-danger" id="det-num"></div>
         </div>
       </div>
     
-      <!-- 2. Nombre Completo -->
-      <div class="detail-section mb-3">
+      <!-- Cambiamos mb-3 a mb-2 en todos los siguientes -->
+      <div class="detail-section mb-2">
         <div class="detail-label">Nombres y Apellidos</div>
-        <div class="detail-value fs-5" id="det-nombres-apellidos"></div>
+        <div class="detail-value fs-6" id="det-nombres-apellidos"></div>
       </div>
     
-      <!-- 3. Padres -->
-      <div class="row g-2 mb-3">
+      <div class="row g-2 mb-2">
         <div class="col-6">
-          <div class="detail-section h-100">
+          <div class="detail-section h-100 mb-0">
             <div class="detail-label">Padre</div>
             <div class="detail-value small" id="det-padre"></div>
           </div>
         </div>
         <div class="col-6">
-          <div class="detail-section h-100">
+          <div class="detail-section h-100 mb-0">
             <div class="detail-label">Madre</div>
             <div class="detail-value small" id="det-madre"></div>
           </div>
         </div>
       </div>
     
-      <!-- 4. Nacimiento (Lugar y Fechas) -->
-      <div class="detail-section mb-3">
+      <div class="detail-section mb-2">
         <div class="detail-label">Lugar de Nacimiento:</div>
-        <div class="detail-value" id="det-lugar-nac"></div>
-        <div class="small text-muted mt-1 border-top pt-1" id="det-fecha-nac"></div>
-        <div class="small text-muted fst-italic" id="det-fecha-nac-literal"></div> <!-- Para fecha escrita -->
+        <div class="detail-value small" id="det-lugar-nac"></div>
+        <div class="small text-muted border-top mt-1" style="font-size: 0.75rem;" id="det-fecha-nac"></div>
+        <div class="small text-muted fst-italic" style="font-size: 0.75rem;" id="det-fecha-nac-literal"></div>
       </div>
     
-      <!-- 5. Bautismo (Lugar y Fechas) -->
-      <div class="detail-section mb-3" style="background: #e9effd; border-color: var(--brand-accent)">
+      <div class="detail-section mb-2" style="background: #e9effd; border-color: var(--brand-accent)">
         <div class="detail-label text-accent">Datos del Bautismo</div>
-        <div class="detail-value" id="det-lugar-bau"></div>
-        <div class="small fw-bold text-primary mt-1 border-top border-primary-subtle pt-1" id="det-fecha-bau"></div>
-        <div class="small text-primary fst-italic" id="det-fecha-bau-literal"></div> <!-- Para fecha escrita -->
+        <div class="detail-value small" id="det-lugar-bau"></div>
+        <div class="small fw-bold text-primary border-top mt-1" style="font-size: 0.75rem;" id="det-fecha-bau"></div>
+        <div class="small text-primary fst-italic" style="font-size: 0.75rem;" id="det-fecha-bau-literal"></div>
       </div>
     
-      <!-- 6. Padrinos (Nuevo) -->
-      <div class="row g-2 mb-3">
+      <div class="row g-2 mb-2">
         <div class="col-6">
-          <div class="detail-section h-100">
+          <div class="detail-section h-100 mb-0">
             <div class="detail-label">Padrino</div>
             <div class="detail-value small" id="det-padrino"></div>
           </div>
         </div>
         <div class="col-6">
-          <div class="detail-section h-100">
+          <div class="detail-section h-100 mb-0">
             <div class="detail-label">Madrina</div>
             <div class="detail-value small" id="det-madrina"></div>
           </div>
         </div>
       </div>
     
-      <!-- 7. Notas Marginales y Anotaciones (Separados) -->
-      <div class="detail-section mb-3">
+      <!-- Reducimos el alto de los textarea para que ocupen menos -->
+      <div class="detail-section mb-2">
         <div class="detail-label">Notas Marginales</div>
-        <textarea id="box-notas-margen" class="form-control border-0 bg-light mt-2" style="font-size: 0.85rem; resize: none;" rows="3" placeholder="Sin notas..."></textarea>
+        <textarea id="box-notas-margen" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2"></textarea>
       </div>
     
-      <div class="detail-section mb-3">
+      <div class="detail-section mb-2">
         <div class="detail-label">Anotaciones Extra</div>
-        <textarea id="box-anotaciones" class="form-control border-0 bg-light mt-2" style="font-size: 0.85rem; resize: none;" rows="3" placeholder="Sin anotaciones..."></textarea>
+        <textarea id="box-anotaciones" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2"></textarea>
       </div>
     
-      <button class="btn btn-primary-custom shadow-lg mt-3" onclick="validarFechasYGenerar()">
-        <i class="fas fa-print me-2"></i> Generar Certificado Oficial
+      <button class="btn btn-primary-custom shadow-lg mt-2 py-2" onclick="validarFechasYGenerar()">
+        <i class="fas fa-print me-2"></i> Generar Certificado
       </button>
     
     </div>
