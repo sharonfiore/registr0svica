@@ -472,29 +472,29 @@
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
             <div class="detail-label">Nombres</div>
-            <div class="detail-value fs-6" id="det-nombres"></div>
+            <div class="detail-value fs-6 editable-field" id="det-nombres"></div>
           </div>
         </div>
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
             <div class="detail-label">Apellidos</div>
-            <div class="detail-value fs-6" id="det-apellidos"></div>
+            <div class="detail-value fs-6 editable-field" id="det-apellidos"></div>
           </div>
         </div>
       </div>
     
-      <!-- 3. Padres -->
+      <!-- 3. Padres (CORREGIDO con editable-field) -->
       <div class="row g-2 mb-2">
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
             <div class="detail-label">Padre</div>
-            <div class="detail-value small" id="det-padre"></div>
+            <div class="detail-value small editable-field" id="det-padre"></div>
           </div>
         </div>
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
             <div class="detail-label">Madre</div>
-            <div class="detail-value small" id="det-madre"></div>
+            <div class="detail-value small editable-field" id="det-madre"></div>
           </div>
         </div>
       </div>
@@ -906,52 +906,50 @@
       
       document.getElementById('mod-head-nombre').innerText = d.id;
       
-      // 1. Datos Básicos
-      document.getElementById('det-libro').innerText = d.libro || "";
-      document.getElementById('det-foja').innerText = d.foja || "";
-      document.getElementById('det-num').innerText = d.numero || "";
-      document.getElementById('det-nombres').innerText = (d.nombres || "").toUpperCase();
-      document.getElementById('det-apellidos').innerText = (d.apellidos || "").toUpperCase();
-      document.getElementById('det-padre').innerText = (d.padre || "").toUpperCase();
-      document.getElementById('det-madre').innerText = (d.madre || "").toUpperCase();
-      
-      // 2. Nacimiento
+      // Lista de IDs que deben ser editables
+      const idsEditables = [
+        'det-libro', 'det-foja', 'det-num', 
+        'det-nombres', 'det-apellidos', 
+        'det-padre', 'det-madre', 
+        'det-padrino', 'det-madrina', 
+        'det-ministro'
+      ];
+
+      // Asignamos texto y aseguramos que tengan la clase
+      idsEditables.forEach(id => {
+        let key = id.replace('det-', '');
+        let valor = d[key] || "";
+        let el = document.getElementById(id);
+        if (el) {
+          el.innerText = valor.toString().toUpperCase();
+          el.classList.add('editable-field'); // Refuerzo de clase
+        }
+      });
+
+      // Lugar y Fechas (Nacimiento y Bautismo)
       document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
       document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
       document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito || "";
 
-      // 3. Ministro (Común a ambos)
-      document.getElementById('det-ministro').innerText = (d.ministro || "").toUpperCase();
+      document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
+      document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
+      document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
 
-      // 4. Lógica Diferenciada
+      // Lógica Confirmación
       const panelConfi = document.getElementById('section-confirmacion-panel');
-      
       if (moduloActual === 'confirmacion') {
         panelConfi.classList.remove('d-none');
-        // Datos de la Confirmación (Ficha de Confirmación)
         document.getElementById('det-lugar-conf').innerText = d.lugar_confirmacion || "";
         document.getElementById('det-fecha-conf').innerText = d.fecha_confirmacion || "";
         document.getElementById('det-fecha-conf-literal').innerText = d.fecha_confirmacion_escrita || "";
-
-        // Datos del Bautismo (QUE ESTÁN DENTRO DE LA FICHA DE CONFIRMACIÓN)
-        document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
-        document.getElementById('det-fecha-bau').innerText = d.fecha_bau_original || "";
-        document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bau_escrito_original || "";
       } else {
         panelConfi.classList.add('d-none');
-        // Datos del Bautismo (Ficha de Bautismo normal)
-        document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
-        document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
-        document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
       }
 
-      // 5. Padrinos y Notas
-      document.getElementById('det-padrino').innerText = (d.padrino || "").toUpperCase();
-      document.getElementById('det-madrina').innerText = (d.madrina || "").toUpperCase();
       document.getElementById('box-notas-margen').value = d.nota_marginal || "";
       document.getElementById('box-anotaciones').value = d.anotaciones || "";
     
-      cancelarEdicion();
+      cancelarEdicion(); // Bloquea todo al iniciar
       sidebarDetalle.show();
     }
     
