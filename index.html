@@ -719,22 +719,40 @@
         let numLimpia = (fecNumerica && fecNumerica !== "-") ? fecNumerica.trim() : "";
         let escLimpia = (fecEscrita && fecEscrita !== "-") ? fecEscrita.trim() : "";
         let numLarga = formatoFechaLarga(numLimpia);
-    
+        
+        let resultado = "";
+
+        // Escenario A: Conflicto
         if (numLimpia !== "" && escLimpia !== "") {
           let eleccion = await pedirEleccionFecha(tipo, escLimpia, numLarga);
           if (eleccion === 'cancelar') return null; 
-          return (eleccion === 'escrita') ? escLimpia : numLarga;
+          resultado = (eleccion === 'escrita') ? escLimpia : numLarga;
         } 
-        else if (numLimpia !== "") return numLarga;
-        else if (escLimpia !== "") return escLimpia;
-        else return ""; 
+        // Escenario B: Solo Numérica
+        else if (numLimpia !== "") {
+          resultado = numLarga;
+        }
+        // Escenario C: Solo Escrita
+        else if (escLimpia !== "") {
+          resultado = escLimpia;
+        }
+        // Escenario D: Vacíos
+        else {
+          resultado = ""; 
+        }
+
+        // RETORNAR SIEMPRE EN MAYÚSCULAS
+        return resultado.toUpperCase();
       }
     
+      // Procesar Nacimiento
       fechaNacFinal = await procesarEscenarios("NACIMIENTO", d.fecha_nacimiento, d.fecha_nac_escrito);
       if (fechaNacFinal === null) return; 
     
+      // Pausa para que no se encimen los modales
       await new Promise(r => setTimeout(r, 400));
     
+      // Procesar Bautismo
       fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo, d.fecha_bautizo_escrito);
       if (fechaBauFinal === null) return; 
     
@@ -769,12 +787,13 @@
       if(!fechaStr || fechaStr === "-") return "";
       let p = fechaStr.trim().split("/");
       if(p.length === 3) {
+        // Meses en mayúsculas
         const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
         let dia = parseInt(p[0], 10);
         let mes = meses[parseInt(p[1], 10) - 1];
         if(dia && mes && p[2]) return `${dia} DE ${mes} DE ${p[2]}`;
       }
-      return fechaStr;
+      return fechaStr.toUpperCase();
     }
     
     function pedirEleccionFecha(tipo, escrita, numericaLarga) {
