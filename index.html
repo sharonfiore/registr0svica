@@ -3,405 +3,487 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buscador de Partidas de Bautismo</title>
+  <title>Sistema de Bautismo - Webapp UX</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f4f6f9; color: #333; }
-    .bg-parroquia { background-color: #000080 !important; } /* Azul clásico de tu sistema */
-    .text-parroquia { color: #000080 !important; }
-    .btn-parroquia { background-color: #000080; color: white; }
-    .btn-parroquia:hover { background-color: #000060; color: white; }
-    .form-classic-label { font-weight: bold; font-size: 0.9rem; margin-bottom: 0; }
-    .form-classic-value { background-color: #e9ecef; border: 1px solid #ced4da; padding: 4px 8px; min-height: 32px; font-weight: bold; }
-    .table-hover tbody tr { cursor: pointer; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    body { font-family: 'Inter', sans-serif; background-color: #f1f4f9; color: #202124; }
+    .bg-parroquia { background-color: #002266 !important; } /* Navy mucho más sofisticado */
+    .text-parroquia { color: #002266 !important; }
+    .btn-parroquia { background-color: #002266; color: white; border: none; }
+    .btn-parroquia:hover { background-color: #001540; color: white; }
+    
+    .nav-tabs .nav-link { color: rgba(255, 255, 255, 0.7); border: none; font-weight: 500; font-size: 1.05rem;}
+    .nav-tabs .nav-link.active { color: white !important; font-weight: 700; background-color: rgba(255, 255, 255, 0.1) !important; border: none; border-bottom: 3px solid #ffffff;}
+    
+    /* Panel/Tarjetas de contenido (Glassmorfismo / UI de Tarjetas moderna) */
+    .glass-card { background: white; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04); }
+    
+    /* Layout "Read Only" Input Mode */
+    .ui-field-label { font-size: 0.8rem; font-weight: 600; color: #5f6368; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .ui-field-value { background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 6px 12px; font-weight: 500; font-size: 0.95rem; min-height: 35px; color: #1a1a1a; word-wrap: break-word;}
+    .table-hover tbody tr { cursor: pointer; transition: background 0.2s ease; }
+    .table-hover tbody tr:hover { background-color: #f4f6fc; }
   </style>
 </head>
-<body class="d-flex flex-column vh-100">
+<body class="d-flex flex-column vh-100 overflow-hidden">
 
   <!-- ==================== LOGIN ==================== -->
-  <div id="login-screen" class="container-fluid bg-parroquia d-flex align-items-center justify-content-center flex-grow-1">
-    <div class="card shadow-lg border-0" style="width: 100%; max-width: 400px; border-radius: 10px;">
-      <div class="card-body p-4 text-center">
-        <i class="fas fa-church text-parroquia fa-3x mb-3"></i>
-        <h4 class="fw-bold mb-4">Ingreso al Sistema</h4>
-        <form onsubmit="iniciarSesion(event)">
-          <input type="text" id="username" class="form-control mb-3" placeholder="Usuario" required>
-          <input type="password" id="password" class="form-control mb-3" placeholder="Contraseña" required>
-          <div id="login-error" class="alert alert-danger d-none py-2 small fw-bold">Credenciales incorrectas.</div>
-          <button type="submit" id="btn-login" class="btn btn-parroquia w-100 fw-bold">Ingresar</button>
-          <button class="btn btn-parroquia w-100 fw-bold d-none" id="btn-loading" type="button" disabled>Cargando...</button>
-        </form>
+  <div id="login-screen" class="container-fluid bg-parroquia d-flex align-items-center justify-content-center flex-grow-1 position-absolute w-100 h-100" style="z-index: 100;">
+    <div class="glass-card p-5 text-center shadow-lg mx-3" style="width: 100%; max-width: 420px;">
+      <div class="mb-4 d-inline-flex p-3 rounded-circle" style="background-color: rgba(0,34,102,0.1);">
+        <i class="fas fa-church text-parroquia fa-3x"></i>
       </div>
+      <h3 class="fw-bold mb-4" style="color: #002266;">Buscador Sacramental</h3>
+      <form onsubmit="iniciarSesion(event)">
+        <div class="form-floating mb-3">
+          <input type="text" class="form-control" id="username" placeholder="Usuario" required>
+          <label for="username"><i class="fas fa-user text-muted me-2"></i>Usuario</label>
+        </div>
+        <div class="form-floating mb-4">
+          <input type="password" class="form-control" id="password" placeholder="Contraseña" required>
+          <label for="password"><i class="fas fa-lock text-muted me-2"></i>Contraseña</label>
+        </div>
+        <div id="login-error" class="alert alert-danger d-none py-2 small fw-bold"><i class="fas fa-exclamation-circle me-1"></i>Credenciales incorrectas.</div>
+        <button type="submit" id="btn-login" class="btn btn-parroquia w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm">Entrar al Sistema</button>
+        <button class="btn btn-parroquia w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm d-none" id="btn-loading" type="button" disabled>Cargando...</button>
+      </form>
     </div>
   </div>
 
-  <!-- ==================== DASHBOARD ==================== -->
-  <div id="app-screen" class="d-none d-flex flex-column flex-grow-1 h-100">
-    <nav class="navbar navbar-dark bg-parroquia shadow-sm px-4">
-      <span class="navbar-brand fw-bold"><i class="fas fa-search me-2"></i> Búsqueda de Partidas de Bautismo</span>
-      <button onclick="cerrarSesion()" class="btn btn-outline-light btn-sm">Cerrar Sesión</button>
-    </nav>
-
-    <div class="bg-white p-3 border-bottom shadow-sm">
-      <div class="container-fluid row g-2 align-items-end">
-        <div class="col-md-7">
-          <label class="small fw-bold">Nombres, Apellidos o ID:</label>
-          <input type="text" id="search-input" class="form-control form-control-sm">
+  <!-- ==================== APLICACIÓN ==================== -->
+  <div id="app-screen" class="d-none d-flex flex-column h-100 w-100 position-absolute">
+    <!-- Navbar moderna de doble barra -->
+    <div class="bg-parroquia text-white shadow-sm pb-0 pt-3">
+      <div class="container-fluid px-4 d-flex justify-content-between align-items-center mb-2">
+        <h5 class="fw-bold m-0"><i class="fas fa-church me-2"></i> Archivo Parroquial - Tacna</h5>
+        <div class="d-flex align-items-center">
+            <span class="me-3 small opacity-75" id="nav-user-label"><i class="fas fa-user-circle"></i> Usuario</span>
+            <button onclick="cerrarSesion()" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-bold"><i class="fas fa-sign-out-alt me-1"></i>Salir</button>
         </div>
-        <div class="col-md-2">
-          <label class="small fw-bold">Año:</label>
-          <input type="number" id="year-filter" class="form-control form-control-sm">
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-          <button onclick="ejecutarBusqueda()" class="btn btn-parroquia btn-sm flex-grow-1 fw-bold">Buscar</button>
-          <button onclick="limpiarFiltros()" class="btn btn-secondary btn-sm">Limpiar</button>
-        </div>
+      </div>
+      
+      <!-- Navegacion por pestañas -->
+      <div class="container-fluid px-3">
+        <ul class="nav nav-tabs border-0" id="mainTabs">
+            <li class="nav-item">
+              <button class="nav-link active px-4 py-3" onclick="cambiarPestaña('tab-busqueda')" id="btn-tab-busqueda"><i class="fas fa-search me-1"></i> Partidas Bautismo</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link px-4 py-3" onclick="cambiarPestaña('tab-historial'); cargarHistorial()" id="btn-tab-historial"><i class="fas fa-history me-1"></i> Historial Generadas</button>
+            </li>
+          </ul>
       </div>
     </div>
 
-    <div class="container-fluid flex-grow-1 overflow-auto p-3" style="background-color: #f0f0f0;">
-      <div id="loading-indicator" class="text-center my-5 d-none">
-        <div class="spinner-border text-parroquia" role="status"></div>
-        <p class="mt-2 fw-bold">Buscando...</p>
-      </div>
-      <div id="table-container" class="card shadow-sm border-0 d-none">
-        <div class="table-responsive">
-          <table class="table table-hover table-sm table-bordered align-middle mb-0 bg-white">
-            <thead class="table-light">
-              <tr>
-                <th>Código</th><th>Libro/Foja/Num</th><th>Nombre Completo</th><th>Fecha Bautizo</th><th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="results-body"></tbody>
-          </table>
+    <!-- AREA VISTA DINAMICA -->
+    <div class="flex-grow-1 overflow-auto bg-light p-4 position-relative">
+        
+        <!-- === PESTAÑA: BÚSQUEDA === -->
+        <div id="tab-busqueda" class="vista-app container-xl fade-in active">
+            <!-- Barra Buscar Minimalista -->
+            <div class="glass-card p-3 mb-4 d-flex gap-3 align-items-end flex-wrap">
+                <div class="flex-grow-1" style="min-width: 200px;">
+                    <label class="ui-field-label">Nombre, Apellidos o ID (Bautismo)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="search-input" class="form-control border-start-0" placeholder="¿Qué buscas?">
+                    </div>
+                </div>
+                <div style="width: 120px;">
+                    <label class="ui-field-label">Filtro Año</label>
+                    <input type="number" id="year-filter" class="form-control text-center" placeholder="2010">
+                </div>
+                <button onclick="ejecutarBusqueda()" class="btn btn-parroquia px-4 py-2"><i class="fas fa-search me-2"></i>Buscar</button>
+                <button onclick="limpiarFiltros()" class="btn btn-outline-secondary px-3 py-2"><i class="fas fa-eraser me-1"></i></button>
+            </div>
+
+            <!-- Area Tabla de Resultados -->
+            <div id="loading-indicator" class="text-center py-5 d-none">
+                <div class="spinner-grow text-parroquia" style="width: 3rem; height: 3rem;" role="status"></div>
+                <h5 class="mt-3 fw-bold text-secondary">Rastreando el archivo...</h5>
+            </div>
+            
+            <div id="table-container" class="glass-card overflow-hidden d-none">
+                <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 border-white">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="py-3 px-3 border-0 text-muted">ID Sistema</th>
+                        <th class="py-3 px-3 border-0 text-muted">Código Libro</th>
+                        <th class="py-3 px-3 border-0 text-muted">Titular Sacramento</th>
+                        <th class="py-3 px-3 border-0 text-muted text-center"><i class="far fa-calendar-alt"></i> F. Bautizo</th>
+                        <th class="py-3 px-3 border-0 text-muted">Operación</th>
+                    </tr>
+                    </thead>
+                    <tbody id="results-body"></tbody>
+                </table>
+                </div>
+            </div>
+            <div id="no-results" class="text-center py-5 text-muted fw-bold fs-5 d-none bg-white glass-card">
+                <i class="fas fa-folder-open fa-3x mb-3 text-secondary opacity-50"></i><br> No se detectaron partidas. Intenta otro término.
+            </div>
         </div>
-        <div id="no-results" class="text-center p-4 text-muted d-none fw-bold">No se encontraron partidas.</div>
-      </div>
+
+
+        <!-- === PESTAÑA: HISTORIAL === -->
+        <div id="tab-historial" class="vista-app container-xl d-none">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between mb-4 border-bottom pb-2">
+                    <h5 class="fw-bold text-parroquia"><i class="fas fa-list-ol"></i> Últimos PDFs Generados</h5>
+                    <button class="btn btn-sm btn-outline-parroquia" onclick="cargarHistorial()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+                </div>
+                
+                <div id="historial-loading" class="text-center py-4 d-none"><div class="spinner-border text-primary" role="status"></div><br><span class="fw-bold mt-2">Recopilando de Drive...</span></div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle table-hover text-center" id="historial-table">
+                        <thead class="bg-dark text-white rounded-top">
+                            <tr><th>Fecha y Hora Generada</th><th>Persona</th><th>Emitió Usuario</th><th>Archivo URL</th></tr>
+                        </thead>
+                        <tbody id="historial-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
     </div>
   </div>
 
-  <!-- ==================== MODAL "DATOS DE LA PARTIDA" (COMO LA FOTO) ==================== -->
+
+  <!-- ==================== MODAL DE DOS COLUMNAS CON ZONA CONFIRMACIÓN ==================== -->
   <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content" style="background-color: #f3f6fb;">
-        <div class="modal-header bg-parroquia text-white py-2 text-center d-block">
-          <h5 class="modal-title fw-bold m-0 text-center w-100">Datos de la Partida</h5>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content shadow-lg border-0" style="border-radius: 12px; background: #fafbfc;">
+        <div class="modal-header text-white" style="background-color:#002266; border-top-left-radius:12px; border-top-right-radius:12px;">
+            <div>
+              <h5 class="modal-title fw-bold fs-4 m-0 d-inline me-3"><i class="fas fa-address-card text-info me-2"></i>Expediente de Bautismo</h5>
+              <span class="badge bg-light text-dark fw-bold rounded-pill p-2" id="mod-head-nombre"></span>
+            </div>
+          <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body px-4 py-3">
+        <div class="modal-body p-4 bg-white">
           
-          <!-- Fila 1: Código, Libro, Foja, Num -->
-          <div class="row mb-2 align-items-center">
-            <div class="col-3 d-flex align-items-center"><span class="form-classic-label me-2">Código:</span><div class="form-classic-value flex-grow-1" id="det-id"></div></div>
-            <div class="col-3 d-flex align-items-center"><span class="form-classic-label me-2">Libro:</span><div class="form-classic-value flex-grow-1" id="det-libro"></div></div>
-            <div class="col-3 d-flex align-items-center"><span class="form-classic-label me-2">Foja:</span><div class="form-classic-value flex-grow-1" id="det-foja"></div></div>
-            <div class="col-3 d-flex align-items-center"><span class="form-classic-label me-2">Num:</span><div class="form-classic-value flex-grow-1" id="det-num"></div></div>
+          <!-- BANNER IDENTIFICADOR (ROW ÚNICO ARRIBA) -->
+          <div class="row gx-3 mb-4 pb-3 border-bottom border-light-subtle">
+            <div class="col-3"><div class="ui-field-label text-parroquia"><i class="fas fa-barcode"></i> CÓD. SISTEMA:</div><div class="ui-field-value text-primary font-monospace fw-bold fs-6" id="det-id"></div></div>
+            <div class="col-3"><div class="ui-field-label"><i class="fas fa-book"></i> N° LIBRO:</div><div class="ui-field-value" id="det-libro"></div></div>
+            <div class="col-3"><div class="ui-field-label"><i class="fas fa-file-alt"></i> N° FOJA:</div><div class="ui-field-value" id="det-foja"></div></div>
+            <div class="col-3"><div class="ui-field-label"><i class="fas fa-hashtag"></i> N° PARTIDA:</div><div class="ui-field-value text-danger" id="det-num"></div></div>
           </div>
 
-          <!-- Campos Verticales -->
-          <div class="row mb-2"><div class="col-2"><span class="form-classic-label">Nombres:</span></div><div class="col-10"><div class="form-classic-value w-75" id="det-nombres"></div></div></div>
-          <div class="row mb-2"><div class="col-2"><span class="form-classic-label">Apellidos:</span></div><div class="col-10"><div class="form-classic-value w-75" id="det-apellidos"></div></div></div>
-          <div class="row mb-2"><div class="col-2"><span class="form-classic-label">Padre:</span></div><div class="col-10"><div class="form-classic-value w-100" id="det-padre"></div></div></div>
-          <div class="row mb-3"><div class="col-2"><span class="form-classic-label">Madre:</span></div><div class="col-10"><div class="form-classic-value w-100" id="det-madre"></div></div></div>
+          <!-- LA MÁGIA DEL 2 COLUMNAS (MÚLTIPLES CARDS) -->
+          <div class="row g-4">
+              <!-- COLUMNA IZQUIERDA: INFORMACIÓN CIVIL/NACIMIENTO -->
+              <div class="col-lg-6 border-end pe-4">
+                  <h6 class="text-secondary fw-bold text-uppercase border-bottom pb-2 mb-3"><i class="fas fa-user-circle"></i> Filiciación y Nacimiento</h6>
+                  
+                  <div class="row g-2 mb-3">
+                      <div class="col-12"><div class="ui-field-label">Nombres Completos:</div><div class="ui-field-value fs-5 bg-light border-0" style="color: #0d6efd;" id="det-nombres"></div></div>
+                      <div class="col-12"><div class="ui-field-label">Apellidos Completos:</div><div class="ui-field-value border-0 shadow-sm" style="background:#e3ecfd; color:#002266;" id="det-apellidos"></div></div>
+                  </div>
 
-          <div class="row mb-2"><div class="col-3"><span class="form-classic-label">Lugar de Nacimiento:</span></div><div class="col-9"><div class="form-classic-value w-100" id="det-lugar-nac"></div></div></div>
-          <div class="row mb-2"><div class="col-3"><span class="form-classic-label">Fecha de Nacimiento:</span></div>
-            <div class="col-4"><div class="form-classic-value w-100 text-center text-secondary small" id="det-fecha-nac" title="Fecha Numérica"></div></div>
-            <div class="col-5"><div class="form-classic-value w-100 text-center text-secondary small" id="det-fecha-nac-escrito" title="Fecha Escrita"></div></div>
+                  <div class="mb-3"><div class="ui-field-label text-success">Don. (Padre):</div><div class="ui-field-value" id="det-padre"></div></div>
+                  <div class="mb-4"><div class="ui-field-label text-danger">Doña. (Madre):</div><div class="ui-field-value" id="det-madre"></div></div>
+                  
+                  <div class="mb-2"><div class="ui-field-label">Nació geográficamente en:</div><div class="ui-field-value" id="det-lugar-nac"></div></div>
+                  
+                  <!-- Doble fecha civil -->
+                  <div class="row g-2">
+                    <div class="col-4"><div class="ui-field-label"><i class="far fa-calendar-plus text-muted"></i> F. Nac. Breve:</div><div class="ui-field-value text-center" id="det-fecha-nac"></div></div>
+                    <div class="col-8"><div class="ui-field-label"><i class="fas fa-pen-nib text-muted"></i> Literal (Manuscrita en libro):</div><div class="ui-field-value fst-italic" style="color:#777;" id="det-fecha-nac-escrito"></div></div>
+                  </div>
+              </div>
+
+              <!-- COLUMNA DERECHA: SACRAMENTO BAUTISMO Y CONFIRMACIÓN -->
+              <div class="col-lg-6 ps-2">
+                 <h6 class="text-secondary fw-bold text-uppercase border-bottom pb-2 mb-3"><i class="fas fa-dove"></i> Detalle Del Sacramento Bautismal</h6>
+                 
+                 <div class="mb-3"><div class="ui-field-label text-parroquia">Templo del Bautismo:</div><div class="ui-field-value text-parroquia bg-light shadow-sm" id="det-lugar-bau"></div></div>
+                 <div class="mb-4"><div class="ui-field-label text-primary">Ministro quien bautiza:</div><div class="ui-field-value border-primary bg-transparent text-primary fw-bold" id="det-ministro"></div></div>
+                 
+                 <!-- Doble fecha eclesiastica -->
+                  <div class="row g-2 mb-4">
+                    <div class="col-4"><div class="ui-field-label text-dark"><i class="fas fa-calendar-check text-muted"></i> Bautismo:</div><div class="ui-field-value bg-warning bg-opacity-25 border-warning text-dark text-center shadow-sm" id="det-fecha-bau"></div></div>
+                    <div class="col-8"><div class="ui-field-label text-dark"><i class="fas fa-pen-nib text-muted"></i> Literal:</div><div class="ui-field-value fst-italic shadow-sm bg-warning bg-opacity-10" style="color:#666;" id="det-fecha-bau-escrito"></div></div>
+                  </div>
+
+                 <div class="row g-2 mb-2">
+                     <div class="col-12"><div class="ui-field-label">Padrino:</div><div class="ui-field-value" id="det-padrino"></div></div>
+                     <div class="col-12"><div class="ui-field-label">Madrina:</div><div class="ui-field-value" id="det-madrina"></div></div>
+                 </div>
+              </div>
           </div>
-          <div class="row mb-3"><div class="col-3"><span class="form-classic-label">Ministro Sacramento:</span></div><div class="col-9"><div class="form-classic-value w-100" id="det-ministro"></div></div></div>
 
-          <div class="row mb-2"><div class="col-3"><span class="form-classic-label">Lugar de Bautismo:</span></div><div class="col-9"><div class="form-classic-value w-100" id="det-lugar-bau"></div></div></div>
-          <div class="row mb-2"><div class="col-3"><span class="form-classic-label">Fecha de Bautismo:</span></div>
-            <div class="col-4"><div class="form-classic-value w-100 text-center text-secondary small" id="det-fecha-bau" title="Fecha Numérica"></div></div>
-            <div class="col-5"><div class="form-classic-value w-100 text-center text-secondary small" id="det-fecha-bau-escrito" title="Fecha Escrita"></div></div>
-          </div>
-          <div class="row mb-2"><div class="col-3"><span class="form-classic-label">Padrino:</span></div><div class="col-9"><div class="form-classic-value w-100" id="det-padrino"></div></div></div>
-          <div class="row mb-3"><div class="col-3"><span class="form-classic-label">Madrina:</span></div><div class="col-9"><div class="form-classic-value w-100" id="det-madrina"></div></div></div>
+          <!-- BLOQUES DE ÁREA DE TEXTO COMPLEMENTARIOS AL FINAL ANCHO COMPLETO -->
+          <div class="mt-5 p-3 rounded-3" style="background:#f4f6fc; border:1px dashed #b9d1ff;">
+              
+             <!-- CAJA AÑADIDA PARA EXTRAS (CONFIRMACIÓN) - EDICION RAPIDA -->
+             <div class="mb-3">
+                 <label class="ui-field-label text-parroquia fw-bold d-block"><i class="fas fa-bookmark text-success"></i> INSERCIÓN OPIONAL DE "SACRAMENTO DE CONFIRMACIÓN" Y ANOTACIONES EXTRAORDINARIAS</label>
+                 <small class="text-muted d-block mb-1">Escribe aquí los datos si en su partida aparece anotación de haber sido confirmad@ (Ejemplo: "CONFIRMADO en P. SJM. el 20 de mayo, Reg: Tomo 1"). Todo lo que añadas aquí irá anclado directo como nota oficial a su impresión.</small>
+                 
+                 <!-- Se fusiona editable la base y confirmacion para libertad parroquial -->
+                 <textarea id="box-notas-margen-confirma" class="form-control font-monospace p-2 border border-info border-2" style="background-color: #fffbdd; resize: none; color:#000; min-height:80px; font-size:14px;"></textarea>
+                 
+                 <div id="hidden-notas-originales" style="display:none;"></div>
+             </div>
 
-          <!-- Notas y Anotaciones -->
-          <div class="row">
-            <div class="col-6">
-              <span class="form-classic-label">Notas Marginales:</span>
-              <div class="form-classic-value w-100 mt-1" style="min-height: 80px;" id="det-notas"></div>
-            </div>
-            <div class="col-6">
-              <span class="form-classic-label bg-secondary text-white px-2">Anotaciones Extra:</span>
-              <div class="form-classic-value w-100 mt-1" style="min-height: 80px;" id="det-anotaciones"></div>
-            </div>
           </div>
 
         </div>
-        <div class="modal-footer justify-content-between bg-light border-top">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar / Cerrar</button>
-          <button type="button" class="btn btn-success fw-bold" onclick="validarFechasYGenerar()">
-            <i class="fas fa-file-excel me-1"></i> Generar en Plantilla Excel
+        <div class="modal-footer p-3 bg-light justify-content-between" style="border-bottom-left-radius:12px;border-bottom-right-radius:12px;">
+          <button type="button" class="btn btn-outline-secondary px-4 fw-bold shadow-sm" data-bs-dismiss="modal">❌ Retirarse sin Hacer Nada</button>
+          
+          <button type="button" class="btn btn-success fw-bold px-4 py-2 fs-5 shadow" style="background-color:#0ba542; border:none;" onclick="validarFechasYGenerar()">
+             Construir Partida <i class="fas fa-print ms-2 text-white"></i> 
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== MODAL DE CONFLICTO DE FECHAS ==================== -->
-  <div class="modal fade" id="conflictModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content shadow-lg border-warning border-3">
-        <div class="modal-header bg-warning text-dark py-2">
-          <h5 class="modal-title fw-bold" id="conflict-title"><i class="fas fa-exclamation-triangle"></i> Conflicto de Fechas</h5>
+
+  <!-- ==================== MODAL FECHA ALERTA ==================== -->
+  <div class="modal fade" id="conflictModal" tabindex="-1" style="z-index:9999;" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered border-0">
+      <div class="modal-content shadow-lg text-center" style="border-radius:15px; overflow:hidden;">
+        <div class="bg-warning bg-gradient text-dark py-4 text-center">
+          <i class="fas fa-code-branch fa-4x text-white mb-2"></i><br>
+          <h4 class="fw-bold mb-0 mx-2 text-white shadow-sm d-inline">¡Conflicto Numeral!</h4>
         </div>
-        <div class="modal-body text-center">
-          <p class="mb-3">Se encontraron datos en ambos campos (numérico y escrito).<br>¿Qué dato desea utilizar en la partida?</p>
-          <div class="d-grid gap-3">
-            <button class="btn btn-outline-primary fw-bold p-3" id="btn-use-written"></button>
-            <button class="btn btn-outline-success fw-bold p-3" id="btn-use-numeric"></button>
+        <div class="modal-body p-4 bg-light">
+          <p class="fs-6 text-muted mb-4 fw-medium" id="conflict-title">Se leyeron formatos numéricos vs texto.</p>
+          <div class="row g-2 justify-content-center">
+            <div class="col-12"><button class="btn border shadow-sm w-100 py-3 text-start bg-white d-flex flex-column hover" style="transition:0.3s;" id="btn-use-numeric"></button></div>
+            <div class="col-12"><button class="btn btn-dark shadow w-100 py-3 text-start d-flex flex-column border-0 text-white hover-opacity" id="btn-use-written"></button></div>
           </div>
-        </div>
-        <div class="modal-footer justify-content-center bg-light">
-          <button type="button" class="btn btn-secondary" id="btn-cancel-conflict">Detener generación (Cancelar)</button>
+          <button class="btn btn-link text-muted text-decoration-none mt-3 p-0 fs-6 border-bottom" id="btn-cancel-conflict">No elegir / abortar acción.</button>
         </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
   <script>
-    // =======================================================
+    // == TOMA LA URL ORIGINAL DEL API APPSCRIPT!
     const API_URL = "https://script.google.com/macros/s/AKfycbxJ1cIGqUm24JSlX6kmGbE84lNpg-_tnhKXOyQK1Enr9blUiyjtlqkboDhOrt709x_c/exec"; 
-    // =======================================================
 
-    let datosActuales =[];
-    let modalDetalle;
-    let modalConflicto;
-    let registroSeleccionado = null; // Guarda temporalmente la fila a imprimir
+    let datosActuales =[]; let modalDetalle; let modalConflicto; let registroSeleccionado = null; 
 
     document.addEventListener("DOMContentLoaded", () => {
       modalDetalle = new bootstrap.Modal(document.getElementById('detailModal'));
       modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
       if (localStorage.getItem('sesionParroquia') === 'activa') {
-        mostrarDashboard(); realizarPeticionBusqueda("", ""); 
+        mostrarAppConTabs();
       }
+      
       document.getElementById('search-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') ejecutarBusqueda(); });
       document.getElementById('year-filter').addEventListener('keypress', (e) => { if (e.key === 'Enter') ejecutarBusqueda(); });
     });
 
-    async function iniciarSesion(event) {
-      event.preventDefault();
-      manejarUI('login', true);
-      const usuarioIngresado = document.getElementById('username').value; // Capturamos el usuario
-      const passwordIngresado = document.getElementById('password').value;
-
-      try {
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'login', usuario: usuarioIngresado, password: passwordIngresado }) });
-        const data = await res.json();
-        manejarUI('login', false);
-        if(data.success) { 
-          localStorage.setItem('sesionParroquia', 'activa'); 
-          localStorage.setItem('usuarioParroquia', usuarioIngresado); // Guardamos el usuario para el historial
-          mostrarDashboard(); realizarPeticionBusqueda("", ""); 
-        } 
-        else { document.getElementById('login-error').classList.remove('d-none'); }
-      } catch (e) { alert("Error de conexión API."); manejarUI('login', false); }
+    // ===== 1. MANEJO NAVEGACIÓN Y TABS INTERNAS
+    function cambiarPestaña(tabId) {
+        document.querySelectorAll('.vista-app').forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('#mainTabs .nav-link').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.remove('d-none');
+        document.getElementById("btn-"+tabId).classList.add('active');
+    }
+    
+    function mostrarAppConTabs() {
+      let nomUser = localStorage.getItem('usuarioParroquia') || "Operador";
+      document.getElementById('nav-user-label').innerHTML = `<i class="fas fa-user-check"></i> HOLA, ${nomUser.toUpperCase()}`;
+      document.getElementById('login-screen').classList.replace('d-flex', 'd-none'); 
+      document.getElementById('app-screen').classList.replace('d-none', 'd-flex');
+      cambiarPestaña('tab-busqueda');
+      realizarPeticionBusqueda("", ""); 
     }
 
-    function mostrarDashboard() { document.getElementById('login-screen').classList.replace('d-flex', 'd-none'); document.getElementById('app-screen').classList.replace('d-none', 'd-flex'); }
-    function cerrarSesion() { localStorage.removeItem('sesionParroquia'); location.reload(); }
+    // ===== 2. MOTOR DEL USUARIO =====
+    async function iniciarSesion(event) {
+      event.preventDefault(); manejarUI('login', true);
+      const usu = document.getElementById('username').value, pas = document.getElementById('password').value;
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'login', usuario: usu, password: pas }) });
+        const data = await res.json();
+        manejarUI('login', false);
+        if(data.success) { localStorage.setItem('sesionParroquia','activa'); localStorage.setItem('usuarioParroquia', usu); mostrarAppConTabs(); } 
+        else { document.getElementById('login-error').classList.remove('d-none'); }
+      } catch (e) { alert("¡Sin respuesta web, el servidor está dormido! Intenta 2 veces más rápido."); manejarUI('login', false); }
+    }
+    function cerrarSesion() { localStorage.removeItem('sesionParroquia'); localStorage.removeItem('usuarioParroquia'); location.reload(); }
+
     function ejecutarBusqueda() { realizarPeticionBusqueda(document.getElementById('search-input').value, document.getElementById('year-filter').value); }
     function limpiarFiltros() { document.getElementById('search-input').value = ''; document.getElementById('year-filter').value = ''; realizarPeticionBusqueda("", ""); }
-
+    
+    // ==== BUSCAR BAUTISOS =====
     async function realizarPeticionBusqueda(termino, anio) {
       manejarUI('busqueda', true);
       try {
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'buscar', termino: termino, anio: anio }) });
-        const data = await res.json();
-        mostrarResultados(data.data);
-      } catch (e) { alert("Error: " + e); manejarUI('busqueda', false); }
+        const data = await res.json(); mostrarResultados(data.data);
+      } catch (e) { manejarUI('busqueda', false); }
     }
-
     function mostrarResultados(res) {
-      manejarUI('busqueda', false);
-      const tbody = document.getElementById('results-body');
-      datosActuales = res; tbody.innerHTML = '';
-      if (!res || res.length === 0) { document.getElementById('table-container').classList.add('d-none'); document.getElementById('no-results').classList.remove('d-none'); return; }
+      manejarUI('busqueda', false); const tbody = document.getElementById('results-body'); datosActuales = res; tbody.innerHTML = '';
+      if (!res || res.length===0) { document.getElementById('table-container').classList.add('d-none'); document.getElementById('no-results').classList.remove('d-none'); return;}
       document.getElementById('no-results').classList.add('d-none'); document.getElementById('table-container').classList.remove('d-none');
       res.forEach((f, i) => {
+        let nameBello = f.nombre_completo || "-";
         tbody.innerHTML += `<tr onclick="abrirModalDetalle(${i})">
-          <td class="fw-bold">${f.id || ""}</td><td>${f.nro_libro||"-"} / ${f.foja||"-"} / ${f.numero||"-"}</td>
-          <td>${f.nombre_completo || ""}</td><td>${f.fecha_bautizo || ""}</td>
-          <td><button class="btn btn-sm btn-outline-primary py-0 px-2"><i class="fas fa-edit"></i> Ver</button></td></tr>`;
+          <td class="text-primary fw-bold font-monospace fs-6 align-middle">${f.id || "SIN-REF"}</td>
+          <td class="text-muted"><span class="badge bg-light text-dark shadow-sm">Lib:${f.nro_libro||"#"} F:${f.foja||"#"} P:${f.numero||"#"}</span></td>
+          <td class="fw-bold" style="color:#002266;">${nameBello.toUpperCase()}</td>
+          <td class="text-center bg-light text-secondary rounded"><i class="far fa-calendar text-info"></i> ${f.fecha_bautizo || "?"}</td>
+          <td><button class="btn btn-sm btn-outline-primary py-1 px-3 shadow-sm rounded-pill"><i class="fas fa-eye"></i> Inspeccionar</button></td></tr>`;
       });
     }
 
-    // ====== LLENAR MODAL VISUAL ======
+    // ====== LLENAR CARGA MAGISTRAL UI =======
     function abrirModalDetalle(index) {
       registroSeleccionado = datosActuales[index];
       const d = registroSeleccionado;
+      document.getElementById('mod-head-nombre').innerText = "TITULAR: " + (d.nombres+" "+d.apellidos).trim();
+
+      document.getElementById('det-id').innerText = d.id || "N/A";
+      document.getElementById('det-libro').innerText = d.nro_libro || "---";
+      document.getElementById('det-foja').innerText = d.foja || "---";
+      document.getElementById('det-num').innerText = d.numero || "---";
       
-      document.getElementById('det-id').innerText = d.id || "";
-      document.getElementById('det-libro').innerText = d.nro_libro || "";
-      document.getElementById('det-foja').innerText = d.foja || "";
-      document.getElementById('det-num').innerText = d.numero || "";
+      document.getElementById('det-nombres').innerText = (d.nombres || "NO REGISTRA").toUpperCase();
+      document.getElementById('det-apellidos').innerText = (d.apellidos || "NO REGISTRA").toUpperCase();
+      document.getElementById('det-padre').innerText = (d.padre || "Nulo").toUpperCase();
+      document.getElementById('det-madre').innerText = (d.madre || "Nulo").toUpperCase();
       
-      document.getElementById('det-nombres').innerText = d.nombres || "";
-      document.getElementById('det-apellidos').innerText = d.apellidos || "";
-      document.getElementById('det-padre').innerText = d.padre || "";
-      document.getElementById('det-madre').innerText = d.madre || "";
-      
-      document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
+      document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "TACNA";
       document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
-      document.getElementById('det-fecha-nac-escrito').innerText = d.fecha_nac_escrito || "";
+      document.getElementById('det-fecha-nac-escrito').innerText = (d.fecha_nac_escrito && d.fecha_nac_escrito !== "ninguno.") ? '"' + d.fecha_nac_escrito + '"' : "";
       
-      document.getElementById('det-ministro').innerText = d.ministro || "";
-      
-      document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
+      document.getElementById('det-ministro').innerText = (d.ministro || "").toUpperCase();
+      document.getElementById('det-lugar-bau').innerText = (d.lugar_bautizo || "TACNA").toUpperCase();
       document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
-      document.getElementById('det-fecha-bau-escrito').innerText = d.fecha_bautizo_escrito || "";
+      document.getElementById('det-fecha-bau-escrito').innerText = (d.fecha_bautizo_escrito && d.fecha_bautizo_escrito !== "ninguna.") ? '"' + d.fecha_bautizo_escrito + '"' : "";
       
-      document.getElementById('det-padrino').innerText = d.padrino || "";
-      document.getElementById('det-madrina').innerText = d.madrina || "";
+      document.getElementById('det-padrino').innerText = (d.padrino || "-").toUpperCase();
+      document.getElementById('det-madrina').innerText = (d.madrina || "-").toUpperCase();
       
-      document.getElementById('det-notas').innerText = (d.nota_marginal && d.nota_marginal !== "NINGUNA.") ? d.nota_marginal : "";
-      document.getElementById('det-anotaciones').innerText = d.anotaciones || "";
+      let noteReal = (d.nota_marginal && d.nota_marginal.toUpperCase() !== "NINGUNA.") ? ":: Nota Magin.: "+d.nota_marginal : "";
+      let anotReal = (d.anotaciones && d.anotaciones.toUpperCase() !== "NINGUNA.") ? "\n:: Otras: "+d.anotaciones : "";
+      
+      let totalMergedText = noteReal + anotReal; 
+      
+      // La guardamos secreta y la ponemos en la gran textarea "box-notas-margen-confirma" de color amarilla Editable
+      document.getElementById('hidden-notas-originales').innerText = totalMergedText.trim();
+      
+      if(totalMergedText.trim() === ""){
+          document.getElementById('box-notas-margen-confirma').value = "NINGUNA ANOTACIÓN EXTRA REGISTRADA POR ARCHIVISTA OFICIAL.";
+      } else {
+          document.getElementById('box-notas-margen-confirma').value = totalMergedText.trim();
+      }
 
       modalDetalle.show();
     }
 
-    // ====== 3. LÓGICA COMPLEJA DE FECHAS ======
-    
-    // Función para convertir dd/mm/yyyy a "DD DE MES DE YYYY"
+    // ====== CÁLCULO FECHA =======
     function formatoFechaLarga(fechaStr) {
-      if(!fechaStr) return "";
-      let p = fechaStr.trim().split("/");
+      if(!fechaStr) return ""; let p = fechaStr.trim().split("/");
       if(p.length === 3) {
-        const meses =["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-        let dia = parseInt(p[0], 10);
-        let mes = meses[parseInt(p[1], 10) - 1];
-        if(dia && mes && p[2]) return `${dia} DE ${mes} DE ${p[2]}`;
-      }
-      return fechaStr; // Si no es fecha válida, devuelve tal cual
+        const mesR =["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+        if(p[0] && mesR[parseInt(p[1])-1] && p[2]) return `${parseInt(p[0])} DE ${mesR[parseInt(p[1])-1]} DE ${p[2]}`;
+      } return fechaStr; 
     }
-
-    // Promesa para esperar la decisión del usuario en el Modal de Conflicto
-    function pedirEleccionFecha(tipo, escrita, numericaLarga) {
-      return new Promise((resolve) => {
-        document.getElementById('conflict-title').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Conflicto de Fechas (${tipo})`;
-        document.getElementById('btn-use-written').innerHTML = `SÍ = Usar Escrita:<br><b>'${escrita}'</b>`;
-        document.getElementById('btn-use-numeric').innerHTML = `NO = Usar Numérica:<br><b>'${numericaLarga}'</b>`;
-        
-        // Asignar eventos a los botones
-        document.getElementById('btn-use-written').onclick = () => { modalConflicto.hide(); resolve('escrita'); };
-        document.getElementById('btn-use-numeric').onclick = () => { modalConflicto.hide(); resolve('numerica'); };
-        document.getElementById('btn-cancel-conflict').onclick = () => { modalConflicto.hide(); resolve('cancelar'); };
-        
+    function pedirEleccionFecha(t, escr, numa) {
+      return new Promise((r) => {
+        document.getElementById('conflict-title').innerHTML = `Secreto <span class="badge bg-dark">${t}</span><br>Existe fecha Literal (escrita manualmente) Y Computarizada...`;
+        document.getElementById('btn-use-written').innerHTML = `<span class="badge bg-secondary mb-1">Aconsejada (Histórica)</span><br><i class="fas fa-keyboard opacity-50 mb-1 d-inline-block text-start fa-2x"></i> <span>DICE: <strong>${escr}</strong></span>`;
+        document.getElementById('btn-use-numeric').innerHTML = `<span class="badge border bg-light text-muted mb-1 border-bottom">Fecha Numérica Calculada</span><br><i class="fas fa-calendar opacity-50 mb-1 text-primary d-inline-block text-start fa-2x"></i> <span class="text-primary fs-5">RESULTA: <strong>${numa}</strong></span>`;
+        document.getElementById('btn-use-written').onclick = () => { modalConflicto.hide(); r('escrita'); };
+        document.getElementById('btn-use-numeric').onclick = () => { modalConflicto.hide(); r('numerica'); };
+        document.getElementById('btn-cancel-conflict').onclick = () => { modalConflicto.hide(); r('cancelar'); };
         modalConflicto.show();
       });
     }
 
     async function validarFechasYGenerar() {
-      const d = registroSeleccionado;
-      let fechaNacFinal = "";
-      let fechaBauFinal = "";
+      const d = registroSeleccionado; let fn = ""; let fb = "";
+      let nM = d.fecha_nacimiento||"", nE = d.fecha_nac_escrito||"", nML = formatoFechaLarga(nM);
+      if(nM&&nE) { let r1 = await pedirEleccionFecha("NACIMIENTO", nE, nML); if(r1==='cancelar') return; fn=(r1==='escrita')?nE:nML;} else { fn=nML||nE;}
 
-      // ---- EVALUAR FECHA NACIMIENTO ----
-      let nacNum = d.fecha_nacimiento ? d.fecha_nacimiento.trim() : "";
-      let nacEsc = d.fecha_nac_escrito ? d.fecha_nac_escrito.trim() : "";
-      let nacNumLarga = formatoFechaLarga(nacNum);
+      let bM = d.fecha_bautizo||"", bE = d.fecha_bautizo_escrito||"", bML = formatoFechaLarga(bM);
+      if(bM&&bE) { await new Promise(r=>setTimeout(r,300)); let r2 = await pedirEleccionFecha("BAUTISMO", bE, bML); if(r2==='cancelar') return; fb=(r2==='escrita')?bE:bML;} else { fb=bML||bE;}
 
-      if (nacNum !== "" && nacEsc !== "") {
-        let eleccion = await pedirEleccionFecha("NACIMIENTO", nacEsc, nacNumLarga);
-        if (eleccion === 'cancelar') return; // Detiene el código
-        fechaNacFinal = (eleccion === 'escrita') ? nacEsc : nacNumLarga;
-      } else if (nacNum !== "") {
-        fechaNacFinal = nacNumLarga;
-      } else if (nacEsc !== "") {
-        fechaNacFinal = nacEsc;
-      }
-
-      // ---- EVALUAR FECHA BAUTISMO ----
-      let bauNum = d.fecha_bautizo ? d.fecha_bautizo.trim() : "";
-      let bauEsc = d.fecha_bautizo_escrito ? d.fecha_bautizo_escrito.trim() : "";
-      let bauNumLarga = formatoFechaLarga(bauNum);
-
-      if (bauNum !== "" && bauEsc !== "") {
-        // Hacemos una pequeña pausa visual para que el Bootstrap Modal funcione bien
-        await new Promise(r => setTimeout(r, 400)); 
-        let eleccion = await pedirEleccionFecha("BAUTISMO", bauEsc, bauNumLarga);
-        if (eleccion === 'cancelar') return;
-        fechaBauFinal = (eleccion === 'escrita') ? bauEsc : bauNumLarga;
-      } else if (bauNum !== "") {
-        fechaBauFinal = bauNumLarga;
-      } else if (bauEsc !== "") {
-        fechaBauFinal = bauEsc;
-      }
-
-      // ---- PROCEDER A GENERAR EN HOJA ----
-      enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal);
-    }
-
-    async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal) {
-      const d = registroSeleccionado;
+      // TRUCO MAGIC CONFIRMACIÓN INYECTADA! - Agarramos lo que ellos tiperarón del box editbale
+      let dataTextFinalExtraAnotaciones = document.getElementById('box-notas-margen-confirma').value; 
       
-      let datosParaPlantilla = {
-        id: d.id, // NUEVO: Enviamos el ID para guardarlo en el historial
-        libro: d.nro_libro, foja: d.foja, numero: d.numero,
-        nombres: d.nombres, apellidos: d.apellidos,
-        padre: d.padre, madre: d.madre,
-        lugarNac: d.lugar_nacimiento, fechaNac: fechaNacFinal,
-        ministro: d.ministro, lugarBau: d.lugar_bautizo, fechaBau: fechaBauFinal,
-        padrino: d.padrino, madrina: d.madrina,
-        notas: d.nota_marginal, anotaciones: d.anotaciones
-      };
+      let pckg = { id: d.id, libro: d.nro_libro, foja: d.foja, numero: d.numero, nombres: d.nombres, apellidos: d.apellidos,
+        padre: d.padre, madre: d.madre, lugarNac: d.lugar_nacimiento, fechaNac: fn, ministro: d.ministro, lugarBau: d.lugar_bautizo, 
+        fechaBau: fb, padrino: d.padrino, madrina: d.madrina, 
+        notas: dataTextFinalExtraAnotaciones, anotaciones: "---" }; // Mapeado único a Nota de todo el input de texto!
 
-      // Recuperar el usuario logueado de la memoria del navegador
-      let usuarioGuardado = localStorage.getItem('usuarioParroquia') || "Desconocido";
-
-      let btnGenerar = document.querySelector(".btn-success");
-      let textoOriginal = btnGenerar.innerHTML;
-      btnGenerar.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Generando Partida...`;
-      btnGenerar.disabled = true;
-
+      const userHijoMio = localStorage.getItem('usuarioParroquia')||"ADMIN";
+      let bxG = document.querySelector(".btn-success"); let org = bxG.innerHTML; 
+      bxG.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> PDF IMPRESO CAYENDO...`; bxG.disabled = true;
       try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ 
-            accion: 'generar_partida', 
-            datos: datosParaPlantilla,
-            usuario: usuarioGuardado // NUEVO: Enviamos el usuario para el historial
-          })
-        });
-        const data = await res.json();
+        const rs = await fetch(API_URL,{method:'POST',body:JSON.stringify({accion:'generar_partida',datos:pckg, usuario: userHijoMio})});
+        const dr = await rs.json(); bxG.innerHTML=org; bxG.disabled=false;
+        
+        if (dr.success) {
+           modalDetalle.hide();
 
-        // Restaurar botón
-        btnGenerar.innerHTML = textoOriginal;
-        btnGenerar.disabled = false;
+           // SUPER TRUCO CONTRA POPUPS-BLOCKER MAC/CHROME / ABRIR DE GOLPE
+           if(dr.pdfUrl) {
+                // Notificación super cool de completado visual antes del viaje dimensional web.
+                document.getElementById('table-container').classList.add('d-none');
+                document.getElementById('no-results').innerHTML = `<i class="fas fa-file-pdf text-danger fa-4x mb-2 shadow"></i> <br><span class="text-success fw-bold">Partida procesada en nube al 100%. </span> <p class="text-muted fw-bold">Mira otra pestaña si fue forzada! ;)</p><br> <a href='${dr.pdfUrl}' target='_blank' class="btn btn-warning shadow fw-bold px-4 py-2 mt-2"> <i class="fas fa-cloud-download-alt text-dark me-2"></i>CLICK AQUÍ SI TU PC BLOQUEO LA VENTA AUTMATICA O ABRE HISTORIAL TAB</a>`; 
+                document.getElementById('no-results').classList.remove('d-none');
+                
+                // Apertura agresiva invisible "Href de link natural hack html js"
+                let virtualA = document.createElement("a");
+                virtualA.href = dr.pdfUrl; virtualA.target = "_blank"; virtualA.style.display="none";
+                document.body.appendChild(virtualA); 
+                try { virtualA.click(); } catch(falla) { window.open(dr.pdfUrl, '_blank');}
+                virtualA.remove(); // Limpieza instantánea.
+           }
 
-        if (data.success) {
-          alert("¡Partida generada y guardada en el Historial exitosamente!"); // Mensaje final
-          
-          // Abre el PDF generado en una pestaña nueva al instante
-          if (data.pdfUrl) {
-            window.open(data.pdfUrl, '_blank'); 
-          }
-          
-          modalDetalle.hide(); // Cierra el modal de la partida
-        } else {
-          alert("Error en el servidor: " + data.message);
-        }
-
-      } catch (error) {
-        alert("Error de conexión con el servidor: " + error);
-        btnGenerar.innerHTML = textoOriginal;
-        btnGenerar.disabled = false;
-      }
+        } else alert("Fallo Motor Server:\n" + dr.message);
+      } catch (er) { bxG.innerHTML=org; bxG.disabled=false; alert("La API ha rechazado. Refresca F5:\n" + er); }
     }
-
-    function manejarUI(proceso, cargando) {
-      if(proceso === 'login') { document.getElementById('btn-login').classList.toggle('d-none', cargando); document.getElementById('btn-loading').classList.toggle('d-none', !cargando); if(cargando) document.getElementById('login-error').classList.add('d-none'); } 
-      else { document.getElementById('table-container').classList.add('d-none'); document.getElementById('no-results').classList.add('d-none'); document.getElementById('loading-indicator').classList.toggle('d-none', !cargando); }
-    }
-
-
     
+    // ==== 3. MOTOR DEL HISTORIAL CREADO DE GOOGLE ======
+    async function cargarHistorial(){
+      const cont = document.getElementById("historial-body"); 
+      cont.innerHTML = "";
+      document.getElementById("historial-loading").classList.remove('d-none');
+      try {
+        const req = await fetch(API_URL, {method: 'POST', body: JSON.stringify({accion: "obtener_historial"}) });
+        const obj = await req.json(); document.getElementById("historial-loading").classList.add('d-none');
+        if(!obj.success) return alert("Ups historial no detectado");
+        let info = obj.data; 
+        
+        if(!info || info.length===0){
+           cont.innerHTML="<tr><td colspan='4'> <br><br><b>TU HISTORIAL APENAS HOY NACE! Está vacío aún. 👻 </b><br>Las cosas aquí aparecerán al primer documento descargado.<br><br> </td></tr>"
+           return;
+        }
+        
+        info.forEach((g) => {
+            cont.innerHTML += `<tr class="fw-medium text-muted">
+               <td>${g.fechaHora}</td> 
+               <td><b><span class="text-parroquia">${g.idPartida}</span> - ${g.nombreCompleto}</b></td> 
+               <td><span class="badge bg-secondary text-white rounded">${(g.usuario||"Desconocido").toUpperCase()}</span></td> 
+               <td> <a class="btn btn-sm text-white" style="background:#cc0000" href="${g.link}" target="_blank"> <i class="fas fa-file-pdf text-white me-1"></i> VER Drive </a></td>
+             </tr>`;
+        });
+      }catch(eee){ alert("Baneo Carga Red Historias."); document.getElementById("historial-loading").classList.add('d-none'); }
+    }
+
+    // INTERFAZ COMPLEMENTARIAS
+    function manejarUI(pr, car) {
+      if(pr==='login'){document.getElementById('btn-login').classList.toggle('d-none',car); document.getElementById('btn-loading').classList.toggle('d-none',!car); if(car)document.getElementById('login-error').classList.add('d-none');}
+      else{ document.getElementById('table-container').classList.add('d-none'); document.getElementById('no-results').classList.add('d-none'); document.getElementById('loading-indicator').classList.toggle('d-none',!car); }
+    }
+
   </script>
 </body>
 </html>
