@@ -228,6 +228,16 @@
       background-color: #fff9e6 !important;
       cursor: text;
     }
+
+    .editing-mode .editable-field {
+      border: 1px dashed #0055ff !important;
+      background-color: #fff9e6 !important;
+      padding: 2px 4px;
+      border-radius: 4px;
+      display: inline-block;
+      min-width: 50px;
+    }
+    
   </style>
 </head>
 <body>
@@ -382,16 +392,24 @@
     
       <div class="detail-section mb-2">
         <div class="detail-label">Lugar de Nacimiento:</div>
-        <div class="detail-value small" id="det-lugar-nac"></div>
-        <div class="small text-muted border-top mt-1" style="font-size: 0.75rem;" id="det-fecha-nac"></div>
-        <div class="small text-muted fst-italic" style="font-size: 0.75rem;" id="det-fecha-nac-literal"></div>
+        <div class="detail-value small editable-field" id="det-lugar-nac"></div>
+        <div class="small text-muted border-top mt-1 pt-1" style="font-size: 0.75rem;">
+           F. Numérica: <span class="editable-field text-dark fw-medium" id="det-fecha-nac"></span>
+        </div>
+        <div class="small text-muted fst-italic" style="font-size: 0.75rem;">
+           F. Escrita: <span class="editable-field text-dark fw-medium" id="det-fecha-nac-literal"></span>
+        </div>
       </div>
     
       <div class="detail-section mb-2" style="background: #e9effd; border-color: var(--brand-accent)">
         <div class="detail-label text-accent">Datos del Bautismo</div>
-        <div class="detail-value small" id="det-lugar-bau"></div>
-        <div class="small fw-bold text-primary border-top mt-1" style="font-size: 0.75rem;" id="det-fecha-bau"></div>
-        <div class="small text-primary fst-italic" style="font-size: 0.75rem;" id="det-fecha-bau-literal"></div>
+        <div class="detail-value small editable-field" id="det-lugar-bau"></div>
+        <div class="small fw-bold text-primary border-top border-primary-subtle mt-1 pt-1" style="font-size: 0.75rem;">
+           F. Numérica: <span class="editable-field" id="det-fecha-bau"></span>
+        </div>
+        <div class="small text-primary fst-italic" style="font-size: 0.75rem;">
+           F. Escrita: <span class="editable-field" id="det-fecha-bau-literal"></span>
+        </div>
       </div>
     
       <div class="row g-2 mb-2">
@@ -424,9 +442,21 @@
         <i class="fas fa-print me-2"></i> Generar Certificado
       </button>
 
-      <button class="btn btn-outline-primary w-100 mt-2 py-2 fw-bold" onclick="guardarCambiosEdicion()" id="btn-save-edit">
-        <i class="fas fa-save me-2"></i> Guardar Cambios en Base de Datos
-      </button>
+      <!-- Botones de Edición -->
+      <div class="mt-3 border-top pt-3">
+        <button class="btn btn-outline-secondary w-100 mb-2 fw-bold" onclick="habilitarEdicion()" id="btn-edit-record">
+          <i class="fas fa-edit me-2"></i> Habilitar Edición
+        </button>
+        
+        <div id="edit-controls" class="d-none d-flex gap-2 mb-2">
+          <button class="btn btn-success flex-grow-1 fw-bold" onclick="guardarCambiosEdicion()" id="btn-save-edit">
+            <i class="fas fa-save me-1"></i> Guardar
+          </button>
+          <button class="btn btn-light border fw-bold" onclick="cancelarEdicion()">
+            Cancelar
+          </button>
+        </div>
+      </div>
     
     </div>
   </div>
@@ -628,7 +658,7 @@
 
     function mostrarResultados(res) {
       const tbody = document.getElementById('results-body');
-      datosActuales = (res || []).map(item => ({ ...item, libro: item.nro_libro })); 
+      datosActuales = (res ||[]).map(item => ({ ...item, libro: item.nro_libro })); 
       tbody.innerHTML = '';
       if (datosActuales.length === 0) { document.getElementById('table-container').classList.add('d-none'); return; }
       document.getElementById('table-container').classList.remove('d-none');
@@ -637,8 +667,13 @@
         tbody.innerHTML += `<tr>
           <td class="fw-bold text-primary small">${f.id}</td>
           <td><span class="badge bg-light text-dark border p-2">L:${f.libro} F:${f.foja} P:${f.numero}</span></td>
-          <td class="fw-semibold">${(f.nombre_completo || "").toUpperCase()}</td>
-          <td class="text-muted small">${(f.padre || "-").toUpperCase()} / ${(f.madre || "-").toUpperCase()}</td> <!-- Mostrar Padres -->
+          
+          <!-- AQUÍ SE PONEN LOS PADRES DEBAJO DEL NOMBRE -->
+          <td>
+            <span class="fw-semibold d-block">${(f.nombre_completo || "").toUpperCase()}</span>
+            <small class="text-muted" style="font-size: 0.70rem;"><i class="fas fa-users me-1"></i> ${(f.padre || "-").toUpperCase()} / ${(f.madre || "-").toUpperCase()}</small>
+          </td>
+          
           <td class="text-muted small">${f.fecha_bautizo || "-"}</td>
           <td><button class="btn btn-action" onclick="abrirPanelDetalle(${i})">Ver Expediente</button></td>
         </tr>`;
@@ -649,22 +684,33 @@
       registroSeleccionado = datosActuales[idx];
       const d = registroSeleccionado;
       
-      const campos = [
-        ['det-libro', d.libro], ['det-foja', d.foja], ['det-num', d.numero],
-        ['det-nombres-apellidos', (d.nombres + " " + d.apellidos).toUpperCase()],
-        ['det-padre', d.padre], ['det-madre', d.madre], ['det-lugar-nac', d.lugar_nacimiento],
-        ['det-fecha-nac', d.fecha_nacimiento], ['det-lugar-bau', d.lugar_bautizo],
-        ['det-fecha-bau', d.fecha_bautizo]
-      ];
-
-      campos.forEach(c => {
-        let el = document.getElementById(c[0]);
-        el.innerText = c[1] || "-";
-        el.setAttribute("contenteditable", "true"); // Habilitar edición
-      });
-
+      document.getElementById('mod-head-nombre').innerText = d.id;
+      // Añadimos clase editable-field a los IDs para identificarlos fácil
+      document.getElementById('det-libro').innerText = d.libro || ""; document.getElementById('det-libro').classList.add('editable-field');
+      document.getElementById('det-foja').innerText = d.foja || ""; document.getElementById('det-foja').classList.add('editable-field');
+      document.getElementById('det-num').innerText = d.numero || ""; document.getElementById('det-num').classList.add('editable-field');
+      
+      document.getElementById('det-nombres-apellidos').innerText = ((d.nombres||"") + " " + (d.apellidos||"")).toUpperCase().trim();
+      document.getElementById('det-nombres-apellidos').classList.add('editable-field');
+      
+      document.getElementById('det-padre').innerText = (d.padre || "").toUpperCase(); document.getElementById('det-padre').classList.add('editable-field');
+      document.getElementById('det-madre').innerText = (d.madre || "").toUpperCase(); document.getElementById('det-madre').classList.add('editable-field');
+      
+      document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
+      document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
+      document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito || "";
+    
+      document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
+      document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
+      document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
+    
+      document.getElementById('det-padrino').innerText = (d.padrino || "").toUpperCase(); document.getElementById('det-padrino').classList.add('editable-field');
+      document.getElementById('det-madrina').innerText = (d.madrina || "").toUpperCase(); document.getElementById('det-madrina').classList.add('editable-field');
+      
       document.getElementById('box-notas-margen').value = d.nota_marginal || "";
       document.getElementById('box-anotaciones').value = d.anotaciones || "";
+    
+      cancelarEdicion(); // Asegura que se abra en modo lectura
       sidebarDetalle.show();
     }
 
@@ -874,6 +920,74 @@
         
         modalConflicto.show();
       });
+    }
+
+    function habilitarEdicion() {
+      document.getElementById('panelDetalle').classList.add('editing-mode');
+      document.getElementById('btn-edit-record').classList.add('d-none');
+      document.getElementById('edit-controls').classList.remove('d-none');
+      
+      // Hacer contenteditable todos los campos con la clase
+      document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'true'));
+    }
+
+    function cancelarEdicion() {
+      document.getElementById('panelDetalle').classList.remove('editing-mode');
+      document.getElementById('btn-edit-record').classList.remove('d-none');
+      document.getElementById('edit-controls').classList.add('d-none');
+      
+      document.querySelectorAll('.editable-field').forEach(el => el.removeAttribute('contenteditable'));
+      
+      // Si cancela, podríamos restaurar visualmente (opcional), pero al cerrar y abrir se restaura solo.
+    }
+
+    async function guardarCambiosEdicion() {
+      const btn = document.getElementById('btn-save-edit');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>...`;
+
+      // Lógica segura para separar nombres y apellidos si editaron el bloque completo
+      const nombreCompleto = document.getElementById('det-nombres-apellidos').innerText.trim().split(" ");
+      let nombres = nombreCompleto[0] || "";
+      let apellidos = nombreCompleto.slice(1).join(" ") || "";
+      if(nombreCompleto.length >= 3) { // Ej: "Juan Jose Perez Gomez"
+         nombres = nombreCompleto.slice(0, 2).join(" ");
+         apellidos = nombreCompleto.slice(2).join(" ");
+      }
+
+      const datosEditados = {
+        id: registroSeleccionado.id,
+        nro_libro: document.getElementById('det-libro').innerText.trim(),
+        foja: document.getElementById('det-foja').innerText.trim(),
+        numero: document.getElementById('det-num').innerText.trim(),
+        nombres: nombres,
+        apellidos: apellidos,
+        padre: document.getElementById('det-padre').innerText.trim(),
+        madre: document.getElementById('det-madre').innerText.trim(),
+        lugar_nacimiento: document.getElementById('det-lugar-nac').innerText.trim(),
+        fecha_nacimiento: document.getElementById('det-fecha-nac').innerText.trim(),
+        fecha_nac_escrito: document.getElementById('det-fecha-nac-literal').innerText.trim(), // Captura fecha escrita
+        lugar_bautizo: document.getElementById('det-lugar-bau').innerText.trim(),
+        fecha_bautizo: document.getElementById('det-fecha-bau').innerText.trim(),
+        fecha_bautizo_escrito: document.getElementById('det-fecha-bau-literal').innerText.trim(), // Captura fecha escrita
+        padrino: document.getElementById('det-padrino').innerText.trim(),
+        madrina: document.getElementById('det-madrina').innerText.trim(),
+        nota_marginal: document.getElementById('box-notas-margen').value,
+        anotaciones: document.getElementById('box-anotaciones').value,
+        ministro: registroSeleccionado.ministro
+      };
+
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'editar', datos: datosEditados }) });
+        const data = await res.json();
+        if (data.success) {
+          cancelarEdicion(); // Bloquea los campos de nuevo
+          ejecutarBusqueda(); // Actualiza la tabla en el fondo
+          alert("Base de Datos actualizada con éxito.");
+        } else { alert("Error: " + data.message); }
+      } catch (e) { alert("Error de conexión al guardar."); } 
+      finally { btn.disabled = false; btn.innerHTML = originalHTML; }
     }
   </script>
 </body>
