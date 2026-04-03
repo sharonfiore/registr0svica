@@ -366,11 +366,15 @@
       </div>
       
       <!-- NUEVOS BOTONES DE MÓDULO -->
-      <button class="nav-pill-custom active" onclick="setModulo('bautismo')" id="btn-mod-bautismo">
+      <button class="nav-pill-custom" onclick="setModulo('bautismo')" id="btn-mod-bautismo">
         <i class="fas fa-dove me-2"></i> Bautismos
       </button>
       <button class="nav-pill-custom" onclick="setModulo('confirmacion')" id="btn-mod-confirmacion">
         <i class="fas fa-fire me-2"></i> Confirmación
+      </button>
+      <!-- NUEVO BOTÓN -->
+      <button class="nav-pill-custom" onclick="cambiarPestaña('tab-sacerdotes'); cargarSacerdotes();" id="btn-tab-sacerdotes">
+        <i class="fas fa-user-tie me-2"></i> Sacerdotes
       </button>
 
       <div class="mt-4 pt-4 border-top">
@@ -471,6 +475,27 @@
           </div>
         </div>
       </div>
+
+      <!-- Gestión de Sacerdotes -->
+      <div id="tab-sacerdotes" class="vista-app d-none">
+        <h2 class="fw-bold mb-4">Gestión de Sacerdotes</h2>
+        <div class="glass-card p-4">
+          <div class="input-group mb-4">
+            <input type="text" id="new-priest-name" class="form-control form-control-custom" placeholder="Nombre del nuevo sacerdote">
+            <button class="btn btn-primary-custom px-4" style="width:auto;" onclick="crearSacerdote()">Agregar</button>
+          </div>
+          <div class="table-container shadow-sm">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr><th>Nombre del Sacerdote</th><th>Estado</th><th>Acción</th></tr>
+              </thead>
+              <tbody id="priests-body"></tbody>
+            </table>
+          </div>
+          <p class="small text-muted mt-3"><i class="fas fa-info-circle"></i> Solo el sacerdote marcado como <b>ACTIVO</b> aparecerá en los certificados. Los cambios se sincronizan en Bautismo y Confirmación.</p>
+        </div>
+      </div>
+      
     </main>
   </div>
 
@@ -731,25 +756,6 @@
     const SHEET_BAUTISMO = "https://docs.google.com/spreadsheets/d/1KQBNB5D7y47LohUwpOIOYOWUQ3YUlUVnCSnhiH1u8-Y/edit";
     const SHEET_CONFIRMACION = "https://docs.google.com/spreadsheets/d/1o-VH1zesx4HnEXqtgaA3OS9IP2OEm3OEIgDSryCRRtw/edit";
 
-    // 2. Función para cambiar de Módulo (Corregida para el Botón de Sheet)
-    function setModulo(mod) {
-      moduloActual = mod;
-      API_URL = (mod === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
-      
-      // Actualizar link del botón de Google Sheets
-      document.getElementById('btn-open-gsheet').href = (mod === 'bautismo') ? SHEET_BAUTISMO : SHEET_CONFIRMACION;
-      
-      document.getElementById('btn-mod-bautismo').classList.toggle('active', mod === 'bautismo');
-      document.getElementById('btn-mod-confirmacion').classList.toggle('active', mod === 'confirmacion');
-      
-      document.getElementById('search-input').value = "";
-      document.getElementById('year-filter').value = "";
-      document.getElementById('main-title').innerText = (mod === 'bautismo') ? "Expedientes de Bautismo" : "Expedientes de Confirmación";
-      
-      cambiarPestaña('tab-busqueda');
-      realizarPeticionBusqueda("", "");
-    }
-
     // 3. Función mostrarResultados (Corregida para añadir columna Catequesis)
     function mostrarResultados(res) {
       const thead = document.getElementById('table-head');
@@ -822,21 +828,75 @@
       }
     });
 
-    // --- FUNCIÓN QUE TE FALTABA PARA QUE FUNCIONE EL MENÚ ---
+    // CORRECCIÓN: Función unificada para que los botones se pinten de azul
+    function actualizarBotonesMenu(activeId) {
+      document.querySelectorAll('.nav-pill-custom').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(activeId).classList.add('active');
+    }
+
     function cambiarPestaña(tabId) {
-        // Ocultar todas las secciones
-        document.querySelectorAll('.vista-app').forEach(el => el.classList.add('d-none'));
-        // Quitar estado activo a todos los botones
-        document.querySelectorAll('.nav-pill-custom').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.vista-app').forEach(el => el.classList.add('d-none'));
+      document.getElementById(tabId).classList.remove('d-none');
+      actualizarBotonesMenu('btn-' + tabId);
+    }
+
+    function setModulo(mod) {
+      moduloActual = mod;
+      API_URL = (mod === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
+      document.getElementById('btn-open-gsheet').href = (mod === 'bautismo') ? SHEET_BAUTISMO : SHEET_CONFIRMACION;
+      document.getElementById('main-title').innerText = (mod === 'bautismo') ? "Partidas de Bautismo" : "Expedientes de Confirmación";
+      
+      cambiarPestaña('tab-busqueda');
+      actualizarBotonesMenu('btn-mod-' + mod); // Activa el botón azul
+      realizarPeticionBusqueda("", "");
+    }
+
+    // --- LÓGICA DE SACERDOTES ---
+    async function cargarSacerdotes() {
+      const tbody = document.getElementById('priests-body');
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center">Cargando...</td></tr>';
+      
+      try {
+        const res = await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'obtener_sacerdotes' }) });
+        const obj = await res.json();
         
-        // Mostrar la sección seleccionada
-        const targetTab = document.getElementById(tabId);
-        if (targetTab) targetTab.classList.remove('d-none');
-        
-        // Activar el botón correspondiente
-        const btnId = "btn-" + tabId;
-        const targetBtn = document.getElementById(btnId);
-        if (targetBtn) targetBtn.classList.add('active');
+        tbody.innerHTML = '';
+        obj.data.forEach(s => {
+          const isActive = s[1] === "ACTIVO";
+          tbody.innerHTML += `<tr>
+            <td class="fw-bold">${s[0]}</td>
+            <td><span class="badge ${isActive ? 'bg-success' : 'bg-light text-muted border'}">${s[1]}</span></td>
+            <td>
+              <button class="btn btn-sm ${isActive ? 'btn-secondary disabled' : 'btn-primary-custom'}" 
+                      onclick="activarSacerdote('${s[0]}')">${isActive ? 'Ya es Activo' : 'Poner como Activo'}</button>
+            </td>
+          </tr>`;
+        });
+      } catch (e) { alert("Error al cargar sacerdotes"); }
+    }
+
+    async function crearSacerdote() {
+      const name = document.getElementById('new-priest-name').value.trim();
+      if (!name) return;
+      
+      // Se guarda en AMBOS archivos
+      try {
+        await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'agregar_sacerdote', nombre: name }) });
+        await fetch(API_CONFIRMACION, { method: 'POST', body: JSON.stringify({ accion: 'agregar_sacerdote', nombre: name }) });
+        document.getElementById('new-priest-name').value = "";
+        cargarSacerdotes();
+      } catch (e) { alert("Error al sincronizar sacerdote"); }
+    }
+
+    async function activarSacerdote(name) {
+      // Se activa en AMBOS archivos
+      try {
+        await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'activar_sacerdote', nombre: name }) });
+        await fetch(API_CONFIRMACION, { method: 'POST', body: JSON.stringify({ accion: 'activar_sacerdote', nombre: name }) });
+        cargarSacerdotes();
+      } catch (e) { alert("Error al activar sacerdote"); }
     }
 
     async function iniciarSesion(event) {
