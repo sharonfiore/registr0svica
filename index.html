@@ -970,7 +970,6 @@
     }
     
     async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal, fechaConfFinal) {
-      const d = registroSeleccionado;
       const btn = document.getElementById("btn-generate-pdf");
       const originalHTML = btn.innerHTML;
     
@@ -981,24 +980,29 @@
         const pckg = { 
            accion: 'generar_partida', 
            datos: { 
-             ...registroSeleccionado,
-             libro: document.getElementById('det-libro').innerText,
-             nro_libro: document.getElementById('det-libro').innerText, // Enviamos ambos por seguridad
+             id: registroSeleccionado.id, // El ID no cambia
+             // TOMAMOS TODO LO DEMÁS DE LA PANTALLA ACTUAL
+             nro_libro: document.getElementById('det-libro').innerText.trim(),
+             foja: document.getElementById('det-foja').innerText.trim(),
+             numero: document.getElementById('det-num').innerText.trim(),
+             nombres: document.getElementById('det-nombres').innerText.trim(),
+             apellidos: document.getElementById('det-apellidos').innerText.trim(),
+             padre: document.getElementById('det-padre').innerText.trim(),
+             madre: document.getElementById('det-madre').innerText.trim(),
+             ministro: document.getElementById('det-ministro').innerText.trim(),
+             padrino: document.getElementById('det-padrino').innerText.trim(),
+             madrina: document.getElementById('det-madrina').innerText.trim(),
+             lugarNac: document.getElementById('det-lugar-nac').innerText.trim(),
              fechaNac: fechaNacFinal,
-             lugarNac: document.getElementById('det-lugar-nac').innerText,
+             lugarBau: document.getElementById('det-lugar-bau').innerText.trim(),
              fechaBau: fechaBauFinal,
-             lugarBau: document.getElementById('det-lugar-bau').innerText,
              fechaConf: fechaConfFinal, 
              lugarConf: moduloActual === 'confirmacion' ? document.getElementById('det-lugar-conf').innerText : "",
-             padrino: document.getElementById('det-padrino').innerText,
-             madrina: document.getElementById('det-madrina').innerText,
-             ministro: document.getElementById('det-ministro').innerText,
              notas: document.getElementById('box-notas-margen').value
            },
            usuario: localStorage.getItem('usuarioParroquia')
         };
         
-        // USA LA API_URL CORRESPONDIENTE AL MÓDULO ACTIVO
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pckg) });
         const data = await res.json();
         
@@ -1007,11 +1011,10 @@
           document.getElementById('btn-open-pdf').href = data.pdfUrl;
           modalExito.show();
         } else {
-          alert("Error del servidor: " + data.message);
+          alert("Error: " + data.message);
         }
       } catch (e) {
-        alert("Error de conexión. Asegúrate de haber autorizado el script de " + moduloActual.toUpperCase());
-        console.error(e);
+        alert("Error de conexión con el servidor.");
       } finally {
         btn.innerHTML = originalHTML;
         btn.disabled = false;
@@ -1019,10 +1022,26 @@
     }
 
     async function validarFechasYGenerar() {
-      const d = registroSeleccionado;
+      // CAPTURAMOS LOS VALORES ACTUALES DIRECTAMENTE DE LA PANTALLA
+      // Esto asegura que si acabas de editar, el sistema vea los cambios
+      const d = {
+        fecha_nacimiento: document.getElementById('det-fecha-nac').innerText,
+        fecha_nac_escrito: document.getElementById('det-fecha-nac-literal').innerText,
+        fecha_bautizo: document.getElementById('det-fecha-bau').innerText,
+        fecha_bautizo_escrito: document.getElementById('det-fecha-bau-literal').innerText
+      };
+
+      // Si estamos en confirmación, capturamos también sus fechas
+      let fConfNum = "";
+      let fConfEsc = "";
+      if (moduloActual === 'confirmacion') {
+        fConfNum = document.getElementById('det-fecha-conf').innerText;
+        fConfEsc = document.getElementById('det-fecha-conf-literal').innerText;
+      }
+
       let fechaNacFinal = "";
       let fechaBauFinal = "";
-      let fechaConfFinal = ""; // Nueva variable para el tercer escenario
+      let fechaConfFinal = "";
     
       async function procesarEscenarios(tipo, fecNumerica, fecEscrita) {
         let numLimpia = (fecNumerica && fecNumerica !== "-") ? fecNumerica.trim() : "";
@@ -1030,6 +1049,7 @@
         let numLarga = formatoFechaLarga(numLimpia);
         
         let resultado = "";
+        // Escenario A: AMBOS LLENOS (Conflicto) - Ahora sí lo detectará porque numLimpia y escLimpia vienen de la pantalla
         if (numLimpia !== "" && escLimpia !== "") {
           let eleccion = await pedirEleccionFecha(tipo, escLimpia, numLarga);
           if (eleccion === 'cancelar') return null; 
@@ -1042,24 +1062,23 @@
         return resultado.toUpperCase();
       }
     
-      // 1. Procesar Nacimiento (Común)
+      // 1. Procesar Nacimiento
       fechaNacFinal = await procesarEscenarios("NACIMIENTO", d.fecha_nacimiento, d.fecha_nac_escrito);
       if (fechaNacFinal === null) return; 
     
       await new Promise(r => setTimeout(r, 400));
     
-      // 2. Procesar Bautismo (Común)
-      fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo || d.fecha_bau_original, d.fecha_bautizo_escrito || d.fecha_bau_escrito_original);
+      // 2. Procesar Bautismo
+      fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo, d.fecha_bautizo_escrito);
       if (fechaBauFinal === null) return; 
 
-      // 3. Procesar Confirmación (SOLO SI EL MÓDULO ES CONFIRMACIÓN)
+      // 3. Procesar Confirmación
       if (moduloActual === 'confirmacion') {
         await new Promise(r => setTimeout(r, 400));
-        fechaConfFinal = await procesarEscenarios("CONFIRMACIÓN", d.fecha_confirmacion, d.fecha_confirmacion_escrita);
+        fechaConfFinal = await procesarEscenarios("CONFIRMACIÓN", fConfNum, fConfEsc);
         if (fechaConfFinal === null) return;
       }
     
-      // Llamamos a la función de envío pasando las 3 fechas procesadas
       enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal, fechaConfFinal);
     }
 
