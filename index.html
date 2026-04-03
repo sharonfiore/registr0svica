@@ -461,6 +461,14 @@
             <tbody id="historial-body"></tbody>
           </table>
           <div id="historial-loading" class="text-center py-4 d-none"><div class="spinner-border text-primary"></div></div>
+          
+          <!-- NUEVO: Controles de Paginación para el Historial -->
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 border-top pt-3">
+            <small class="text-muted fw-semibold" id="hist-pagination-info">Mostrando registros</small>
+            <nav>
+              <ul class="pagination pagination-sm mb-0" id="hist-pagination-controls"></ul>
+            </nav>
+          </div>
         </div>
       </div>
     </main>
@@ -1116,11 +1124,15 @@
 
     let fuenteHistorialActual = 'bautismo';
 
-    // Función para cambiar la fuente de datos del historial
+    let paginaHistorialActual = 1;
+    const filasPorPaginaHistorial = 20; // 20 registros como solicitaste
+    let datosHistorialCrudos = []; // Para guardar el total sin volver a llamar a la API
+
     function setHistorialSource(source) {
       fuenteHistorialActual = source;
+      paginaHistorialActual = 1; // Reiniciar página
+      datosHistorialCrudos = []; // Limpiar cache
       
-      // Actualizar estética de los botones internos
       document.getElementById('btn-hist-bau').classList.toggle('active', source === 'bautismo');
       document.getElementById('btn-hist-conf').classList.toggle('active', source === 'confirmacion');
       
@@ -1129,36 +1141,84 @@
 
     async function cargarHistorial() {
       const cont = document.getElementById("historial-body");
-      cont.innerHTML = "";
-      document.getElementById("historial-loading").classList.remove('d-none');
+      const loading = document.getElementById("historial-loading");
       
-      // Determinamos a qué API llamar basado en la pestaña interna seleccionada
-      const urlParaHistorial = (fuenteHistorialActual === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
-
-      try {
-        const res = await fetch(urlParaHistorial, { 
-          method: 'POST', 
-          body: JSON.stringify({ accion: 'obtener_historial' }) 
-        });
-        const obj = await res.json();
+      // Si no hay datos cargados, los traemos de la API
+      if (datosHistorialCrudos.length === 0) {
+        cont.innerHTML = "";
+        loading.classList.remove('d-none');
+        const urlParaHistorial = (fuenteHistorialActual === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
         
-        if (obj.data && obj.data.length > 0) {
-          obj.data.forEach(g => {
-            cont.innerHTML += `<tr class="small">
-              <td>${g.fechaHora}</td>
-              <td class="fw-bold">${(g.nombreCompleto || "").toUpperCase()}</td>
-              <td><span class="badge bg-light text-dark border">${g.usuario}</span></td>
-              <td><a href="${g.link}" target="_blank" class="btn btn-sm btn-outline-primary py-0 fw-bold">Ver PDF</a></td>
-            </tr>`;
-          });
-        } else {
-          cont.innerHTML = "<tr><td colspan='4' class='text-center py-4'>No hay historial disponible en este registro.</td></tr>";
+        try {
+          const res = await fetch(urlParaHistorial, { method: 'POST', body: JSON.stringify({ accion: 'obtener_historial' }) });
+          const obj = await res.json();
+          datosHistorialCrudos = obj.data || [];
+        } catch (e) {
+          cont.innerHTML = "<tr><td colspan='4' class='text-center text-danger'>Error de conexión.</td></tr>";
+          loading.classList.add('d-none');
+          return;
         }
-      } catch (e) { 
-        console.error(e); 
-        cont.innerHTML = "<tr><td colspan='4' class='text-center text-danger'>Error al cargar los datos.</td></tr>";
       }
-      document.getElementById("historial-loading").classList.add('d-none');
+
+      loading.classList.add('d-none');
+      renderizarTablaHistorial();
+    }
+
+    function renderizarTablaHistorial() {
+      const cont = document.getElementById("historial-body");
+      cont.innerHTML = "";
+
+      if (datosHistorialCrudos.length === 0) {
+        cont.innerHTML = "<tr><td colspan='4' class='text-center py-4'>No hay registros.</td></tr>";
+        return;
+      }
+
+      const inicio = (paginaHistorialActual - 1) * filasPorPaginaHistorial;
+      const fin = inicio + filasPorPaginaHistorial;
+      const paginados = datosHistorialCrudos.slice(inicio, fin);
+
+      paginados.forEach(g => {
+        cont.innerHTML += `<tr class="small">
+          <td>${g.fechaHora}</td>
+          <td class="fw-bold">${(g.nombreCompleto || "").toUpperCase()}</td>
+          <td><span class="badge bg-light text-dark border">${g.usuario}</span></td>
+          <td><a href="${g.link}" target="_blank" class="btn btn-sm btn-outline-primary py-0 fw-bold">Ver PDF</a></td>
+        </tr>`;
+      });
+
+      renderizarPaginacionHistorial();
+    }
+
+    function renderizarPaginacionHistorial() {
+      const totalPaginas = Math.ceil(datosHistorialCrudos.length / filasPorPaginaHistorial);
+      const container = document.getElementById('hist-pagination-controls');
+      const info = document.getElementById('hist-pagination-info');
+      
+      container.innerHTML = '';
+      info.innerText = `Página ${paginaHistorialActual} de ${totalPaginas} (${datosHistorialCrudos.length} totales)`;
+
+      if (totalPaginas <= 1) return;
+
+      container.innerHTML += `<li class="page-item ${paginaHistorialActual === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="javascript:void(0)" onclick="cambiarPaginaHistorial(${paginaHistorialActual - 1})"><i class="fas fa-chevron-left"></i></a>
+      </li>`;
+
+      for (let i = 1; i <= totalPaginas; i++) {
+        if (i === 1 || i === totalPaginas || (i >= paginaHistorialActual - 1 && i <= paginaHistorialActual + 1)) {
+          container.innerHTML += `<li class="page-item ${paginaHistorialActual === i ? 'active' : ''}">
+            <a class="page-link" href="javascript:void(0)" onclick="cambiarPaginaHistorial(${i})">${i}</a>
+          </li>`;
+        }
+      }
+
+      container.innerHTML += `<li class="page-item ${paginaHistorialActual === totalPaginas ? 'disabled' : ''}">
+        <a class="page-link" href="javascript:void(0)" onclick="cambiarPaginaHistorial(${paginaHistorialActual + 1})"><i class="fas fa-chevron-right"></i></a>
+      </li>`;
+    }
+
+    function cambiarPaginaHistorial(p) {
+      paginaHistorialActual = p;
+      renderizarTablaHistorial();
     }
 
     
