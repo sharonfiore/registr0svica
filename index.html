@@ -591,7 +591,7 @@
       datosActuales.forEach((f, i) => {
         tbody.innerHTML += `<tr>
           <td class="fw-bold text-primary small">${f.id}</td>
-          <td><span class="badge bg-light text-dark border p-2">L:${f.nro_libro} F:${f.foja} P:${f.numero}</span></td>
+          <td><span class="badge bg-light text-dark border p-2">L:${f.libro} F:${f.foja} P:${f.numero}</span></td>
           <td class="fw-semibold">${(f.nombre_completo || "").toUpperCase()}</td>
           <td class="text-muted small">${f.fecha_bautizo || "-"}</td>
           <td><button class="btn btn-action" onclick="abrirPanelDetalle(${i})">Ver Expediente</button></td>
@@ -604,7 +604,7 @@
       const d = registroSeleccionado;
       
       document.getElementById('mod-head-nombre').innerText = d.id;
-      document.getElementById('det-libro').innerText = d.nro_libro;
+      document.getElementById('det-libro').innerText = d.libro;
       document.getElementById('det-foja').innerText = d.foja;
       document.getElementById('det-num').innerText = d.numero;
       
@@ -614,12 +614,12 @@
       
       // Lugar y Fechas Nacimiento
       document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "NO REGISTRA";
-      document.getElementById('det-fecha-nac').innerText = "F. Numérica: " + (d.fecha_nacimiento || "-");
+      document.getElementById('det-fecha-nac').innerText = "Fecha Nacimiento Numérica: " + (d.fecha_nacimiento || "-");
       document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito ? "F. Escrita: " + d.fecha_nac_escrito : "";
     
       // Lugar y Fechas Bautismo
       document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "PARROQUIA TACNA";
-      document.getElementById('det-fecha-bau').innerText = "F. Numérica: " + (d.fecha_bautizo || "-");
+      document.getElementById('det-fecha-bau').innerText = "Fecha Bautismo Numérica: " + (d.fecha_bautizo || "-");
       document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito ? "F. Escrita: " + d.fecha_bautizo_escrito : "";
     
       // Padrinos
@@ -635,40 +635,49 @@
 
 
     async function validarFechasYGenerar() {
-      const d = registroSeleccionado; 
-      let fn = ""; let fb = "";
-      
-      const btn = document.querySelector("#panelDetalle .btn-primary-custom");
-      const original = btn.innerHTML;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Generando...`;
-      btn.disabled = true;
-
-      try {
-
-        const pckg = { 
-           accion: 'generar_partida', 
-           datos: { 
-             ...registroSeleccionado, 
-             // 'notas' es lo que el script .gs pondrá en la celda B25
-             notas: document.getElementById('box-notas-margen').value, 
-             // 'anotaciones' viaja aparte y no entrará a la celda B25
-             anotaciones: document.getElementById('box-anotaciones').value 
-           },
-           usuario: localStorage.getItem('usuarioParroquia')
-        };
-        
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pckg) });
-        const data = await res.json();
-        
-        if (data.success) {
-          sidebarDetalle.hide();
-          document.getElementById('btn-open-pdf').href = data.pdfUrl;
-          modalExito.show();
+      const d = registroSeleccionado;
+      let fechaNacFinal = "";
+      let fechaBauFinal = "";
+    
+      // --- FUNCIÓN INTERNA PARA APLICAR LA LÓGICA DE LOS 4 ESCENARIOS ---
+      async function procesarEscenarios(tipo, fecNumerica, fecEscrita) {
+        let numLimpia = (fecNumerica && fecNumerica !== "-") ? fecNumerica.trim() : "";
+        let escLimpia = (fecEscrita && fecEscrita !== "-") ? fecEscrita.trim() : "";
+        let numLarga = formatoFechaLarga(numLimpia);
+    
+        // Escenario A: Ambos campos están llenos (Conflicto)
+        if (numLimpia !== "" && escLimpia !== "") {
+          let eleccion = await pedirEleccionFecha(tipo, escLimpia, numLarga);
+          if (eleccion === 'cancelar') return null; // Escenario A: Cancelar detiene todo
+          return (eleccion === 'escrita') ? escLimpia : numLarga;
+        } 
+        // Escenario B: Solo está la Fecha Numérica
+        else if (numLimpia !== "") {
+          return numLarga;
+        } 
+        // Escenario C: Solo está la Fecha Escrita
+        else if (escLimpia !== "") {
+          return escLimpia;
+        } 
+        // Escenario D: Ambos campos están vacíos
+        else {
+          return ""; // Se enviará vacío y el .gs pondrá "-------"
         }
-      } catch (e) { alert("Error al conectar con el servidor."); }
-      
-      btn.innerHTML = original;
-      btn.disabled = false;
+      }
+    
+      // Ejecutar lógica para NACIMIENTO
+      fechaNacFinal = await procesarEscenarios("NACIMIENTO", d.fecha_nacimiento, d.fecha_nac_escrito);
+      if (fechaNacFinal === null) return; // Si canceló en el modal
+    
+      // Pausa visual para evitar que los modales se encimen
+      await new Promise(r => setTimeout(r, 400));
+    
+      // Ejecutar lógica para BAUTISMO
+      fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo, d.fecha_bautizo_escrito);
+      if (fechaBauFinal === null) return; // Si canceló en el modal
+    
+      // Proceder a enviar
+      enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal);
     }
 
     async function cargarHistorial() {
@@ -692,6 +701,23 @@
         }
       } catch (e) { console.error(e); }
       document.getElementById("historial-loading").classList.add('d-none');
+    }
+
+    function pedirEleccionFecha(tipo, escrita, numericaLarga) {
+      return new Promise((resolve) => {
+        document.getElementById('conflict-title').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Conflicto de Fechas (${tipo})`;
+        
+        // Configuración de botones según tu lógica:
+        // SÍ = Usar Escrita / NO = Usar Numérica (convertida a larga)
+        document.getElementById('btn-use-written').innerHTML = `SÍ (Usar Escrita):<br><small>${escrita}</small>`;
+        document.getElementById('btn-use-numeric').innerHTML = `NO (Usar Numérica):<br><small>${numericaLarga}</small>`;
+        
+        document.getElementById('btn-use-written').onclick = () => { modalConflicto.hide(); resolve('escrita'); };
+        document.getElementById('btn-use-numeric').onclick = () => { modalConflicto.hide(); resolve('numerica'); };
+        document.getElementById('btn-cancel-conflict').onclick = () => { modalConflicto.hide(); resolve('cancelar'); };
+        
+        modalConflicto.show();
+      });
     }
   </script>
 </body>
