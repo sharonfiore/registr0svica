@@ -359,9 +359,7 @@
         if(data.success) {
           modalDetalle.hide();
           
-          // ESTA ES LA CLAVE: 
-          // GitHub recibe la señal de éxito de Apps Script y "dispara" la impresión
-          // Se abrirá una pestaña con el PDF ya formateado por Apps Script listo para el botón "Imprimir"
+          // Abrirá el PDF guardado en Drive en una pestaña nueva
           window.open(data.url, '_blank');
           
         } else {
