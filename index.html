@@ -906,27 +906,37 @@
       
       document.getElementById('mod-head-nombre').innerText = d.id;
       
-      // Lista de IDs que deben ser editables
-      const idsEditables = [
-        'det-libro', 'det-foja', 'det-num', 
-        'det-nombres', 'det-apellidos', 
-        'det-padre', 'det-madre', 
-        'det-padrino', 'det-madrina', 
-        'det-ministro'
-      ];
+      // 1. Datos Críticos (Libro, Foja, Partida)
+      // Corregimos d.libro por d.nro_libro y d.num por d.numero
+      document.getElementById('det-libro').innerText = d.libro || d.nro_libro || "";
+      document.getElementById('det-foja').innerText = d.foja || "";
+      document.getElementById('det-num').innerText = d.numero || ""; // <--- AQUÍ ESTABA EL ERROR
 
-      // Asignamos texto y aseguramos que tengan la clase
-      idsEditables.forEach(id => {
-        let key = id.replace('det-', '');
-        let valor = d[key] || "";
+      // 2. Nombres, Apellidos y Padres (Aseguramos clase editable-field)
+      const camposTexto = {
+        'det-nombres': d.nombres,
+        'det-apellidos': d.apellidos,
+        'det-padre': d.padre,
+        'det-madre': d.madre,
+        'det-padrino': d.padrino,
+        'det-madrina': d.madrina,
+        'det-ministro': d.ministro
+      };
+
+      for (let id in camposTexto) {
         let el = document.getElementById(id);
         if (el) {
-          el.innerText = valor.toString().toUpperCase();
-          el.classList.add('editable-field'); // Refuerzo de clase
+          el.innerText = (camposTexto[id] || "").toString().toUpperCase();
+          el.classList.add('editable-field'); // Esto permite que se pongan blancos al editar
         }
-      });
+      }
+      
+      // Aseguramos que Libro, Foja y Num también tengan la clase para editar
+      document.getElementById('det-libro').classList.add('editable-field');
+      document.getElementById('det-foja').classList.add('editable-field');
+      document.getElementById('det-num').classList.add('editable-field');
 
-      // Lugar y Fechas (Nacimiento y Bautismo)
+      // 3. Lugar y Fechas (Nacimiento, Bautismo)
       document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
       document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
       document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito || "";
@@ -935,21 +945,27 @@
       document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
       document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
 
-      // Lógica Confirmación
+      // 4. Lógica específica para módulo Confirmación
       const panelConfi = document.getElementById('section-confirmacion-panel');
       if (moduloActual === 'confirmacion') {
         panelConfi.classList.remove('d-none');
         document.getElementById('det-lugar-conf').innerText = d.lugar_confirmacion || "";
         document.getElementById('det-fecha-conf').innerText = d.fecha_confirmacion || "";
         document.getElementById('det-fecha-conf-literal').innerText = d.fecha_confirmacion_escrita || "";
+        
+        // Aseguramos que estos también sean editables
+        document.getElementById('det-lugar-conf').classList.add('editable-field');
+        document.getElementById('det-fecha-conf').classList.add('editable-field');
+        document.getElementById('det-fecha-conf-literal').classList.add('editable-field');
       } else {
         panelConfi.classList.add('d-none');
       }
 
+      // 5. Notas y Anotaciones
       document.getElementById('box-notas-margen').value = d.nota_marginal || "";
       document.getElementById('box-anotaciones').value = d.anotaciones || "";
     
-      cancelarEdicion(); // Bloquea todo al iniciar
+      cancelarEdicion(); // Iniciar siempre en modo lectura
       sidebarDetalle.show();
     }
     
