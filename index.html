@@ -512,6 +512,9 @@
       document.getElementById('loading-indicator').classList.add('d-none');
     }
 
+    function ejecutarBusqueda() { realizarPeticionBusqueda(document.getElementById('search-input').value, document.getElementById('year-filter').value); }
+    function limpiarFiltros() { document.getElementById('search-input').value = ''; document.getElementById('year-filter').value = ''; realizarPeticionBusqueda("", ""); }
+
     function mostrarResultados(res) {
       const tbody = document.getElementById('results-body');
       datosActuales = res || []; 
