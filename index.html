@@ -223,6 +223,11 @@
       background-color: #f8faff;
       transform: translateY(-2px);
     }
+    [contenteditable="true"] {
+      border: 1px dashed #0055ff !important;
+      background-color: #fff9e6 !important;
+      cursor: text;
+    }
   </style>
 </head>
 <body>
@@ -303,6 +308,7 @@
                 <th>ID</th>
                 <th>Libro / Foja / Partida</th>
                 <th>Nombre Completo</th>
+                <th>Padres</th> <!-- Nueva columna -->
                 <th>F. Bautizo</th>
                 <th>Acción</th>
               </tr>
@@ -416,6 +422,10 @@
     
       <button class="btn btn-primary-custom shadow-lg mt-2 py-2" onclick="validarFechasYGenerar()">
         <i class="fas fa-print me-2"></i> Generar Certificado
+      </button>
+
+      <button class="btn btn-outline-primary w-100 mt-2 py-2 fw-bold" onclick="guardarCambiosEdicion()" id="btn-save-edit">
+        <i class="fas fa-save me-2"></i> Guardar Cambios en Base de Datos
       </button>
     
     </div>
@@ -618,23 +628,17 @@
 
     function mostrarResultados(res) {
       const tbody = document.getElementById('results-body');
-      // Mapeamos nro_libro a libro para que tu diseño funcione como quieres
-      datosActuales = (res || []).map(item => ({
-        ...item,
-        libro: item.nro_libro // Aquí ocurre la magia: el dato nro_libro ahora se llama libro
-      })); 
-      
+      datosActuales = (res || []).map(item => ({ ...item, libro: item.nro_libro })); 
       tbody.innerHTML = '';
-      if (datosActuales.length === 0) {
-        document.getElementById('table-container').classList.add('d-none');
-        return;
-      }
+      if (datosActuales.length === 0) { document.getElementById('table-container').classList.add('d-none'); return; }
       document.getElementById('table-container').classList.remove('d-none');
+      
       datosActuales.forEach((f, i) => {
         tbody.innerHTML += `<tr>
           <td class="fw-bold text-primary small">${f.id}</td>
           <td><span class="badge bg-light text-dark border p-2">L:${f.libro} F:${f.foja} P:${f.numero}</span></td>
           <td class="fw-semibold">${(f.nombre_completo || "").toUpperCase()}</td>
+          <td class="text-muted small">${(f.padre || "-").toUpperCase()} / ${(f.madre || "-").toUpperCase()}</td> <!-- Mostrar Padres -->
           <td class="text-muted small">${f.fecha_bautizo || "-"}</td>
           <td><button class="btn btn-action" onclick="abrirPanelDetalle(${i})">Ver Expediente</button></td>
         </tr>`;
@@ -645,28 +649,22 @@
       registroSeleccionado = datosActuales[idx];
       const d = registroSeleccionado;
       
-      document.getElementById('mod-head-nombre').innerText = d.id;
-      document.getElementById('det-libro').innerText = d.libro; // Ya funciona gracias al mapeo
-      document.getElementById('det-foja').innerText = d.foja;
-      document.getElementById('det-num').innerText = d.numero;
-      
-      document.getElementById('det-nombres-apellidos').innerText = (d.nombres + " " + d.apellidos).toUpperCase();
-      document.getElementById('det-padre').innerText = (d.padre || "-").toUpperCase();
-      document.getElementById('det-madre').innerText = (d.madre || "-").toUpperCase();
-      
-      document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "NO REGISTRA";
-      document.getElementById('det-fecha-nac').innerText = "F. Numérica: " + (d.fecha_nacimiento || "-");
-      document.getElementById('det-fecha-nac-literal').innerText = (d.fecha_nac_escrito && d.fecha_nac_escrito !== "-") ? "F. Escrita: " + d.fecha_nac_escrito : "";
-    
-      document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "PARROQUIA TACNA";
-      document.getElementById('det-fecha-bau').innerText = "F. Numérica: " + (d.fecha_bautizo || "-");
-      document.getElementById('det-fecha-bau-literal').innerText = (d.fecha_bautizo_escrito && d.fecha_bautizo_escrito !== "-") ? "F. Escrita: " + d.fecha_bautizo_escrito : "";
-    
-      document.getElementById('det-padrino').innerText = (d.padrino || "-").toUpperCase();
-      document.getElementById('det-madrina').innerText = (d.madrina || "-").toUpperCase();
+      const campos = [
+        ['det-libro', d.libro], ['det-foja', d.foja], ['det-num', d.numero],
+        ['det-nombres-apellidos', (d.nombres + " " + d.apellidos).toUpperCase()],
+        ['det-padre', d.padre], ['det-madre', d.madre], ['det-lugar-nac', d.lugar_nacimiento],
+        ['det-fecha-nac', d.fecha_nacimiento], ['det-lugar-bau', d.lugar_bautizo],
+        ['det-fecha-bau', d.fecha_bautizo]
+      ];
+
+      campos.forEach(c => {
+        let el = document.getElementById(c[0]);
+        el.innerText = c[1] || "-";
+        el.setAttribute("contenteditable", "true"); // Habilitar edición
+      });
+
       document.getElementById('box-notas-margen').value = d.nota_marginal || "";
       document.getElementById('box-anotaciones').value = d.anotaciones || "";
-    
       sidebarDetalle.show();
     }
 
@@ -707,6 +705,58 @@
       } finally {
         btn.innerHTML = originalHTML;
         btn.disabled = false;
+      }
+    }
+
+    async function guardarCambiosEdicion() {
+      const btn = document.getElementById('btn-save-edit');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Guardando...`;
+
+      // Separamos nombres y apellidos del div editable (asumiendo formato simple)
+      const nombreCompleto = document.getElementById('det-nombres-apellidos').innerText.split(" ");
+      const nombres = nombreCompleto[0] || "";
+      const apellidos = nombreCompleto.slice(1).join(" ") || "";
+
+      const datosEditados = {
+        id: registroSeleccionado.id,
+        nro_libro: document.getElementById('det-libro').innerText,
+        foja: document.getElementById('det-foja').innerText,
+        numero: document.getElementById('det-num').innerText,
+        nombres: nombres,
+        apellidos: apellidos,
+        padre: document.getElementById('det-padre').innerText,
+        madre: document.getElementById('det-madre').innerText,
+        lugar_nacimiento: document.getElementById('det-lugar-nac').innerText,
+        fecha_nacimiento: document.getElementById('det-fecha-nac').innerText,
+        lugar_bautizo: document.getElementById('det-lugar-bau').innerText,
+        fecha_bautizo: document.getElementById('det-fecha-bau').innerText,
+        nota_marginal: document.getElementById('box-notas-margen').value,
+        anotaciones: document.getElementById('box-anotaciones').value,
+        // Conservamos los escritos originales o los que estén en memoria
+        fecha_bautizo_escrito: registroSeleccionado.fecha_bautizo_escrito,
+        fecha_nac_escrito: registroSeleccionado.fecha_nac_escrito,
+        padrino: document.getElementById('det-padrino') ? document.getElementById('det-padrino').innerText : registroSeleccionado.padrino,
+        madrina: document.getElementById('det-madrina') ? document.getElementById('det-madrina').innerText : registroSeleccionado.madrina,
+        ministro: registroSeleccionado.ministro
+      };
+
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'editar', datos: datosEditados }) });
+        const data = await res.json();
+        if (data.success) {
+          alert("¡Éxito! " + data.message);
+          ejecutarBusqueda(); // Refrescar tabla
+          sidebarDetalle.hide();
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (e) {
+        alert("Error de conexión.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
       }
     }
 
