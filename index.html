@@ -416,123 +416,92 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxJ1cIGqUm24JSlX6kmGbE84lNpg-_tnhKXOyQK1Enr9blUiyjtlqkboDhOrt709x_c/exec"; 
 
-    let datosActuales =[]; 
+    let datosActuales = []; 
     let modalConflicto; 
     let sidebarDetalle;
     let modalExito;
     let registroSeleccionado = null; 
 
+    // 1. CORRECCIÓN: Al cargar la página, verificar sesión
     document.addEventListener("DOMContentLoaded", () => {
       modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
       sidebarDetalle = new bootstrap.Offcanvas(document.getElementById('panelDetalle'));
       modalExito = new bootstrap.Modal(document.getElementById('successPdfModal'));
 
+      // Verificar si ya hay una sesión activa
       if (localStorage.getItem('sesionParroquia') === 'activa') {
-        mostrarApp();
+        mostrarApp(); 
       }
     });
 
-    function cambiarPestaña(tabId) {
-        document.querySelectorAll('.vista-app').forEach(el => el.classList.add('d-none'));
-        document.querySelectorAll('.nav-pill-custom').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.remove('d-none');
-        document.getElementById("btn-"+tabId).classList.add('active');
-    }
-
-    function mostrarApp() {
-      document.getElementById('login-screen').classList.add('d-none'); 
-      document.getElementById('app-screen').classList.remove('d-none');
-      document.getElementById('nav-user-label').innerText = localStorage.getItem('usuarioParroquia').toUpperCase();
-      realizarPeticionBusqueda("", "");
-    }
-
+    // 2. CORRECCIÓN: Función de Login vinculada a tu .gs
     async function iniciarSesion(event) {
-      event.preventDefault(); // Evita que la página se recargue
-    
-      // 1. Capturar elementos de la interfaz
+      event.preventDefault();
+      
       const userField = document.getElementById('username');
       const passField = document.getElementById('password');
       const btnLogin = document.getElementById('btn-login');
-      const btnLoading = document.getElementById('btn-loading');
       const errorMsg = document.getElementById('login-error');
-    
-      const usuario = userField.value.trim();
-      const password = passField.value.trim();
-    
-      // 2. UI: Mostrar estado de "Cargando..."
-      btnLogin.classList.add('d-none');
-      btnLoading.classList.remove('d-none');
+
+      const usu = userField.value.trim();
+      const pas = passField.value.trim();
+
+      // UI: Estado de carga
+      btnLogin.disabled = true;
+      btnLogin.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Verificando...`;
       errorMsg.classList.add('d-none');
-    
+
       try {
-        // 3. Petición al servidor de Google
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            accion: 'login',
-            usuario: usuario,
-            password: password
-          })
+        const res = await fetch(API_URL, { 
+          method: 'POST', 
+          body: JSON.stringify({ 
+            accion: 'login', 
+            usuario: usu,    // Coincide con tu .gs
+            password: pas    // Coincide con tu .gs
+          }) 
         });
-    
-        const data = await response.json();
-    
-        // 4. Analizar respuesta del servidor
+        
+        const data = await res.json();
+
         if (data.success) {
-          // Guardamos la sesión y el nombre del usuario en el navegador
+          // Guardar datos en el navegador
           localStorage.setItem('sesionParroquia', 'activa');
-          localStorage.setItem('usuarioParroquia', usuario);
-    
-          // Limpiamos los campos para seguridad
-          userField.value = "";
-          passField.value = "";
-    
-          // Ejecutamos la transición a la App
-          mostrarApp();
+          localStorage.setItem('usuarioParroquia', usu);
           
+          mostrarApp(); // Cambiar de pantalla
         } else {
-          // Si las credenciales fallan según tu .gs (admin / parroquia2026)
           errorMsg.classList.remove('d-none');
-          errorMsg.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Acceso denegado. Verifique sus datos.';
+          btnLogin.disabled = false;
+          btnLogin.innerHTML = "Ingresar al Sistema";
         }
-      } catch (error) {
-        console.error("Error de conexión:", error);
-        errorMsg.classList.remove('d-none');
-        errorMsg.innerHTML = '<i class="fas fa-wifi me-1"></i> Error de red. El servidor no responde.';
-      } finally {
-        // 5. Restaurar botones de la interfaz
-        btnLogin.classList.remove('d-none');
-        btnLoading.classList.add('d-none');
+      } catch (e) {
+        alert("Error de conexión con el servidor");
+        btnLogin.disabled = false;
+        btnLogin.innerHTML = "Ingresar al Sistema";
       }
     }
-    
-    /** 
-     * Función complementaria para mostrar la App y ocultar el Login
-     * respetando el nuevo diseño UX
-     */
-    function mostrarApp() {
-      const loginScreen = document.getElementById('login-screen');
-      const appScreen = document.getElementById('app-screen');
-      const userLabel = document.getElementById('nav-user-label');
-    
-      // Efecto de desvanecimiento simple
-      loginScreen.style.opacity = '0';
-      
-      setTimeout(() => {
-        loginScreen.classList.add('d-none');
-        appScreen.classList.remove('d-none');
-        
-        // Ponemos el nombre del usuario en el Sidebar
-        const usuarioLogueado = localStorage.getItem('usuarioParroquia') || "Usuario";
-        userLabel.innerText = usuarioLogueado.toUpperCase();
-        
-        // Carga inicial de datos
-        realizarPeticionBusqueda("", "");
-      }, 300);
-    }
-    
 
-    function cerrarSesion() { localStorage.clear(); location.reload(); }
+    // 3. CORRECCIÓN: Mostrar la interfaz principal
+    function mostrarApp() {
+      // Ocultar login y mostrar dashboard
+      document.getElementById('login-screen').classList.add('d-none'); 
+      document.getElementById('app-screen').classList.remove('d-none');
+      
+      // Poner el nombre del usuario en el Sidebar
+      const usuarioLogueado = localStorage.getItem('usuarioParroquia') || "ADMIN";
+      document.getElementById('nav-user-label').innerText = usuarioLogueado.toUpperCase();
+      
+      // Cargar la pestaña de búsqueda por defecto
+      cambiarPestaña('tab-busqueda');
+      realizarPeticionBusqueda("", "");
+    }
+
+    // 4. CORRECCIÓN: Cerrar sesión correctamente
+    function cerrarSesion() { 
+      localStorage.removeItem('sesionParroquia'); 
+      localStorage.removeItem('usuarioParroquia'); 
+      location.reload(); 
+    }
 
     async function realizarPeticionBusqueda(termino, anio) {
       document.getElementById('loading-indicator').classList.remove('d-none');
