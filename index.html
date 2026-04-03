@@ -429,15 +429,18 @@
       <!-- Reducimos el alto de los textarea para que ocupen menos -->
       <div class="detail-section mb-2">
         <div class="detail-label">Notas Marginales</div>
-        <textarea id="box-notas-margen" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2"></textarea>
+        <!-- NUEVO: Se agregó 'readonly' -->
+        <textarea id="box-notas-margen" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2" readonly></textarea>
       </div>
     
       <div class="detail-section mb-2">
         <div class="detail-label">Anotaciones Extra</div>
-        <textarea id="box-anotaciones" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2"></textarea>
+        <!-- NUEVO: Se agregó 'readonly' -->
+        <textarea id="box-anotaciones" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2" readonly></textarea>
       </div>
     
-      <button class="btn btn-primary-custom shadow-lg mt-2 py-2" onclick="validarFechasYGenerar()">
+      <!-- NUEVO: Se agregó el ID 'btn-generate-pdf' -->
+      <button id="btn-generate-pdf" class="btn btn-primary-custom shadow-lg mt-2 py-2" onclick="validarFechasYGenerar()">
         <i class="fas fa-print me-2"></i> Generar Certificado
       </button>
 
@@ -928,6 +931,13 @@
       
       // Hacer contenteditable todos los campos con la clase
       document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'true'));
+      
+      // NUEVO: Quitar readonly a las cajas de texto para poder escribir
+      document.getElementById('box-notas-margen').removeAttribute('readonly');
+      document.getElementById('box-anotaciones').removeAttribute('readonly');
+
+      // NUEVO: Deshabilitar el botón de Generar Certificado durante la edición
+      document.getElementById('btn-generate-pdf').disabled = true;
     }
 
     function cancelarEdicion() {
@@ -937,7 +947,12 @@
       
       document.querySelectorAll('.editable-field').forEach(el => el.removeAttribute('contenteditable'));
       
-      // Si cancela, podríamos restaurar visualmente (opcional), pero al cerrar y abrir se restaura solo.
+      // NUEVO: Volver a bloquear las cajas de texto
+      document.getElementById('box-notas-margen').setAttribute('readonly', 'true');
+      document.getElementById('box-anotaciones').setAttribute('readonly', 'true');
+
+      // NUEVO: Volver a habilitar el botón de Generar Certificado
+      document.getElementById('btn-generate-pdf').disabled = false;
     }
 
     async function guardarCambiosEdicion() {
