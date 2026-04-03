@@ -427,9 +427,7 @@
         <!-- Tabla de Resultados -->
         <div id="table-container" class="table-container shadow-sm d-none">
           <table class="table mb-0 table-hover">
-            <thead id="table-head">
-              <!-- La cabecera se genera automáticamente por JavaScript -->
-            </thead>
+            <thead id="table-head"></thead> <!-- AGREGADO ESTE ID -->
             <tbody id="results-body"></tbody>
           </table>
         </div>
@@ -761,6 +759,8 @@
       const thead = document.getElementById('table-head');
       const tbody = document.getElementById('results-body');
       
+      if (!thead || !tbody) return; // Seguridad para que no se rompa el código
+
       // Generar cabecera dinámica según el módulo
       let headerHTML = `<tr>
         <th>ID</th>
@@ -768,7 +768,7 @@
         <th>Nombre Completo</th>`;
       
       if(moduloActual === 'confirmacion') {
-        headerHTML += `<th>Catequesis</th>`; // Columna solicitada
+        headerHTML += `<th>Catequesis</th>`;
       }
       
       headerHTML += `<th>F. ${moduloActual === 'confirmacion' ? 'Confirma.' : 'Bautizo'}</th>
@@ -785,6 +785,7 @@
       tbody.innerHTML = '';
       if (datosActuales.length === 0) {
         document.getElementById('table-container').classList.add('d-none');
+        document.getElementById('pagination-controls').innerHTML = ''; // Limpiar paginación si no hay datos
         return;
       }
       document.getElementById('table-container').classList.remove('d-none');
@@ -942,8 +943,9 @@
       document.getElementById('app-screen').classList.remove('d-none');
       const usuarioLogueado = localStorage.getItem('usuarioParroquia') || "ADMIN";
       document.getElementById('nav-user-label').innerText = usuarioLogueado.toUpperCase();
-      cambiarPestaña('tab-busqueda');
-      realizarPeticionBusqueda("", "");
+      
+      // Iniciamos con el módulo de Bautismo por defecto pintando el botón de azul
+      setModulo('bautismo'); 
     }
 
     function cerrarSesion() { 
