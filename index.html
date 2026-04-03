@@ -703,6 +703,55 @@
       document.getElementById("historial-loading").classList.add('d-none');
     }
 
+    async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal) {
+      const d = registroSeleccionado;
+      const btn = document.querySelector("#panelDetalle .btn-primary-custom");
+      const original = btn.innerHTML;
+    
+      try {
+        const pckg = { 
+           accion: 'generar_partida', 
+           datos: { 
+             ...registroSeleccionado,
+             libro: d.nro_libro, // Aseguramos que se envíe como 'libro' para el .gs
+             fechaNac: fechaNacFinal,
+             fechaBau: fechaBauFinal,
+             notas: document.getElementById('box-notas-margen').value,
+             anotaciones: document.getElementById('box-anotaciones').value 
+           },
+           usuario: localStorage.getItem('usuarioParroquia')
+        };
+        
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pckg) });
+        const data = await res.json();
+        
+        if (data.success) {
+          sidebarDetalle.hide();
+          document.getElementById('btn-open-pdf').href = data.pdfUrl;
+          modalExito.show();
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (e) {
+        alert("Error de conexión con el servidor.");
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
+    }
+
+    function formatoFechaLarga(fechaStr) {
+      if(!fechaStr || fechaStr === "-") return "";
+      let p = fechaStr.trim().split("/");
+      if(p.length === 3) {
+        const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+        let dia = parseInt(p[0], 10);
+        let mes = meses[parseInt(p[1], 10) - 1];
+        if(dia && mes && p[2]) return `${dia} DE ${mes} DE ${p[2]}`;
+      }
+      return fechaStr;
+    }
+    
     function pedirEleccionFecha(tipo, escrita, numericaLarga) {
       return new Promise((resolve) => {
         document.getElementById('conflict-title').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Conflicto de Fechas (${tipo})`;
