@@ -968,11 +968,17 @@
            accion: 'generar_partida', 
            datos: { 
              ...registroSeleccionado,
-             libro: d.libro, // Ya no enviará guiones
+             libro: document.getElementById('det-libro').innerText,
              fechaNac: fechaNacFinal,
+             lugarNac: document.getElementById('det-lugar-nac').innerText,
              fechaBau: fechaBauFinal,
-             notas: document.getElementById('box-notas-margen').value,
-             anotaciones: document.getElementById('box-anotaciones').value 
+             lugarBau: document.getElementById('det-lugar-bau').innerText,
+             fechaConf: fechaConfFinal, // La fecha elegida por el modal de conflicto
+             lugarConf: document.getElementById('det-lugar-conf').innerText,
+             padrino: document.getElementById('det-padrino').innerText,
+             madrina: document.getElementById('det-madrina').innerText,
+             ministro: document.getElementById('det-ministro').innerText,
+             notas: document.getElementById('box-notas-margen').value
            },
            usuario: localStorage.getItem('usuarioParroquia')
         };
