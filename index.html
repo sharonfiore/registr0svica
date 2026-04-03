@@ -355,19 +355,26 @@
           body: JSON.stringify({ accion: 'generar_partida', datos: datosParaPlantilla })
         });
         const data = await res.json();
-        
-        if(data.success) {
-          modalDetalle.hide();
+
+        // Restaurar botón
+        btnGenerar.innerHTML = textoOriginal;
+        btnGenerar.disabled = false;
+
+        if (data.success) {
+          alert("¡Plantilla llenada y PDF guardado con éxito en Drive!");
           
-          // Abrirá el PDF guardado en Drive en una pestaña nueva
-          window.open(data.url, '_blank');
+          // Abre el PDF en una nueva pestaña
+          if (data.pdfUrl) {
+            window.open(data.pdfUrl, '_blank'); 
+          }
           
+          modalDetalle.hide(); // Cierra el modal de la partida
         } else {
-          alert("Error: " + data.message);
+          alert("Error en el servidor: " + data.message);
         }
-      } catch(e) {
-        alert("Error de comunicación con el servidor.");
-      } finally {
+
+      } catch (error) {
+        alert("Error de conexión con el servidor: " + error);
         btnGenerar.innerHTML = textoOriginal;
         btnGenerar.disabled = false;
       }
