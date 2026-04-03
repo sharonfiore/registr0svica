@@ -906,36 +906,48 @@
       
       document.getElementById('mod-head-nombre').innerText = d.id;
       
-      // Campos básicos
-      const campos = ['det-libro', 'det-foja', 'det-num', 'det-nombres', 'det-apellidos', 'det-padre', 'det-madre', 'det-padrino', 'det-madrina', 'det-ministro'];
-      campos.forEach(id => {
-        let key = id.replace('det-', '');
-        // Caso especial para los nombres y ministro
-        let valor = d[key] || "";
-        document.getElementById(id).innerText = valor.toUpperCase();
-        document.getElementById(id).classList.add('editable-field');
-      });
-    
-      // Lugar y Fechas (Nacimiento y Bautismo siempre visibles)
+      // 1. Datos Básicos
+      document.getElementById('det-libro').innerText = d.libro || "";
+      document.getElementById('det-foja').innerText = d.foja || "";
+      document.getElementById('det-num').innerText = d.numero || "";
+      document.getElementById('det-nombres').innerText = (d.nombres || "").toUpperCase();
+      document.getElementById('det-apellidos').innerText = (d.apellidos || "").toUpperCase();
+      document.getElementById('det-padre').innerText = (d.padre || "").toUpperCase();
+      document.getElementById('det-madre').innerText = (d.madre || "").toUpperCase();
+      
+      // 2. Nacimiento
       document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
       document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
       document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito || "";
-    
-      document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
-      document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
-      document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
-    
-      // Lógica específica para módulo Confirmación
+
+      // 3. Ministro (Común a ambos)
+      document.getElementById('det-ministro').innerText = (d.ministro || "").toUpperCase();
+
+      // 4. Lógica Diferenciada
       const panelConfi = document.getElementById('section-confirmacion-panel');
+      
       if (moduloActual === 'confirmacion') {
         panelConfi.classList.remove('d-none');
+        // Datos de la Confirmación (Ficha de Confirmación)
         document.getElementById('det-lugar-conf').innerText = d.lugar_confirmacion || "";
         document.getElementById('det-fecha-conf').innerText = d.fecha_confirmacion || "";
         document.getElementById('det-fecha-conf-literal').innerText = d.fecha_confirmacion_escrita || "";
+
+        // Datos del Bautismo (QUE ESTÁN DENTRO DE LA FICHA DE CONFIRMACIÓN)
+        document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
+        document.getElementById('det-fecha-bau').innerText = d.fecha_bau_original || "";
+        document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bau_escrito_original || "";
       } else {
         panelConfi.classList.add('d-none');
+        // Datos del Bautismo (Ficha de Bautismo normal)
+        document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
+        document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
+        document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
       }
-    
+
+      // 5. Padrinos y Notas
+      document.getElementById('det-padrino').innerText = (d.padrino || "").toUpperCase();
+      document.getElementById('det-madrina').innerText = (d.madrina || "").toUpperCase();
       document.getElementById('box-notas-margen').value = d.nota_marginal || "";
       document.getElementById('box-anotaciones').value = d.anotaciones || "";
     
@@ -1175,6 +1187,7 @@
         lugar_bautizo: document.getElementById('det-lugar-bau').innerText.trim(),
         fecha_bautizo: document.getElementById('det-fecha-bau').innerText.trim(),
         fecha_bautizo_escrito: document.getElementById('det-fecha-bau-literal').innerText.trim(),
+        ministro: document.getElementById('det-ministro').innerText.trim(),
         padrino: document.getElementById('det-padrino').innerText.trim(),
         madrina: document.getElementById('det-madrina').innerText.trim(),
         ministro: document.getElementById('det-ministro').innerText.trim(), // <--- Guardar Ministro
