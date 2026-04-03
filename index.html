@@ -218,10 +218,15 @@
       margin-bottom: 0.8rem; /* Reducimos la separación entre cuadraditos */
       border: 1px solid rgba(0,0,0,0.03);
     }
-    #btn-use-written:hover, #btn-use-numeric:hover {
-      border-color: var(--brand-accent) !important;
-      background-color: #f8faff;
-      transform: translateY(-2px);
+    #btn-use-written:hover {
+      border-color: #2196f3 !important;
+      background-color: #e3f2fd !important;
+      transform: scale(1.02);
+    }
+    #btn-use-numeric:hover {
+      border-color: #4caf50 !important;
+      background-color: #e8f5e9 !important;
+      transform: scale(1.02);
     }
     [contenteditable="true"] {
       border: 1px dashed #0055ff !important;
@@ -613,52 +618,55 @@
    <!-- MODAL DE CONFLICTO (FECHAS) -->
   <div class="modal fade" id="conflictModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
-        <div class="modal-body p-4 text-center">
-          <!-- Icono de ayuda visual -->
-          <div class="mb-3">
-            <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex p-3">
-              <i class="fas fa- calendar-check fa-2x text-warning"></i>
-            </div>
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 28px; overflow: hidden;">
+        <!-- Cabecera con color suave en vez del circulo amarillo solo -->
+        <div class="p-4 text-center" style="background-color: #fef9e7;">
+          <div class="rounded-circle bg-warning d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;">
+            <i class="fas fa-question text-white fa-2x"></i>
           </div>
-          
-          <h4 class="fw-bold mb-2">Selección de Formato</h4>
-          <p class="text-muted mb-4" id="conflict-title">
-            Se detectaron dos formatos para la fecha de <strong>Bautismo</strong>. <br>Por favor, elija cuál debe aparecer en el acta oficial:
-          </p>
+          <h4 class="fw-bold mt-3 mb-1" style="color: #856404;">¿Cómo desea imprimir la fecha?</h4>
+          <p class="text-muted small mb-0" id="conflict-instruction">Elija la opción que debe aparecer en el certificado.</p>
+        </div>
   
+        <div class="modal-body p-4">
           <div class="d-grid gap-3">
-            <!-- Opción Escrita (Literal) -->
-            <button class="btn border-2 py-3 px-4 text-start hover-shadow-sm d-flex align-items-center justify-content-between" 
-                    id="btn-use-written" style="border-radius: 16px; border-color: #f1f3f7; transition: all 0.2s;">
-              <div>
-                <small class="d-block text-muted fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Formato Literal (Manual)</small>
-                <span class="fs-6 fw-bold text-dark" id="txt-written-preview">...</span>
+            <!-- Opción 1: Lo que se escribió a mano -->
+            <button class="btn py-3 px-4 text-start d-flex align-items-center justify-content-between shadow-sm" 
+                    id="btn-use-written" 
+                    style="border-radius: 18px; border: 2px solid #e3f2fd; background-color: #f0f7ff; transition: all 0.2s;">
+              <div style="flex: 1;">
+                <small class="d-block fw-bold text-primary text-uppercase mb-1" style="font-size: 0.7rem;">OPCIÓN A: USAR EL TEXTO ESCRITO</small>
+                <span class="fs-6 fw-bold text-dark" id="txt-written-preview" style="line-height: 1.2;">...</span>
               </div>
-              <i class="fas fa-pen-nib text-primary"></i>
+              <div class="ms-3 bg-primary bg-opacity-10 p-2 rounded-circle">
+                <i class="fas fa-pen-nib text-primary"></i>
+              </div>
             </button>
   
-            <!-- Opción Numérica (Estándar) -->
-            <button class="btn border-2 py-3 px-4 text-start hover-shadow-sm d-flex align-items-center justify-content-between" 
-                    id="btn-use-numeric" style="border-radius: 16px; border-color: #f1f3f7; transition: all 0.2s;">
-              <div>
-                <small class="d-block text-muted fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Formato Numérico (Sistema)</small>
-                <span class="fs-6 fw-bold text-dark" id="txt-numeric-preview">...</span>
+            <!-- Opción 2: La fecha del sistema convertida -->
+            <button class="btn py-3 px-4 text-start d-flex align-items-center justify-content-between shadow-sm" 
+                    id="btn-use-numeric" 
+                    style="border-radius: 18px; border: 2px solid #e8f5e9; background-color: #f1fcf2; transition: all 0.2s;">
+              <div style="flex: 1;">
+                <small class="d-block fw-bold text-success text-uppercase mb-1" style="font-size: 0.7rem;">OPCIÓN B: USAR FECHA DEL SISTEMA</small>
+                <span class="fs-6 fw-bold text-dark" id="txt-numeric-preview" style="line-height: 1.2;">...</span>
               </div>
-              <i class="fas fa-calendar-alt text-success"></i>
+              <div class="ms-3 bg-success bg-opacity-10 p-2 rounded-circle">
+                <i class="fas fa-calendar-check text-success"></i>
+              </div>
             </button>
           </div>
   
-          <div class="mt-4 pt-2">
-            <button class="btn btn-link text-muted text-decoration-none small fw-semibold" id="btn-cancel-conflict">
-              <i class="fas fa-times me-1"></i> Cancelar y revisar datos
+          <div class="text-center mt-4">
+            <button class="btn btn-link text-muted text-decoration-none small fw-bold" id="btn-cancel-conflict">
+               No imprimir nada todavía (Cerrar)
             </button>
           </div>
         </div>
       </div>
     </div>
   </div>
-
+  
   <!-- MODAL DE ÉXITO ACTUALIZACIÓN (NUEVO) -->
   <div class="modal fade" id="updateSuccessModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -1145,29 +1153,16 @@
     
     function pedirEleccionFecha(tipo, escrita, numericaLarga) {
       return new Promise((resolve) => {
-        // Título dinámico
-        document.getElementById('conflict-title').innerHTML = 
-          `Se detectaron dos formatos para la fecha de <strong>${tipo}</strong>.<br>Seleccione la opción correcta para imprimir:`;
+        // Texto más amigable para la señora
+        document.getElementById('conflict-instruction').innerHTML = 
+          `Se encontraron dos formas de escribir la fecha de <b>${tipo}</b>. <br> ¿Cuál de estas dos quiere que se imprima?`;
         
-        // Inyectar previsualizaciones en los botones
         document.getElementById('txt-written-preview').innerText = escrita;
         document.getElementById('txt-numeric-preview').innerText = numericaLarga;
-    
-        // Asignar eventos de clic
-        document.getElementById('btn-use-written').onclick = () => { 
-          modalConflicto.hide(); 
-          resolve('escrita'); 
-        };
-        
-        document.getElementById('btn-use-numeric').onclick = () => { 
-          modalConflicto.hide(); 
-          resolve('numerica'); 
-        };
-    
-        document.getElementById('btn-cancel-conflict').onclick = () => { 
-          modalConflicto.hide(); 
-          resolve('cancelar'); 
-        };
+
+        document.getElementById('btn-use-written').onclick = () => { modalConflicto.hide(); resolve('escrita'); };
+        document.getElementById('btn-use-numeric').onclick = () => { modalConflicto.hide(); resolve('numerica'); };
+        document.getElementById('btn-cancel-conflict').onclick = () => { modalConflicto.hide(); resolve('cancelar'); };
         
         modalConflicto.show();
       });
