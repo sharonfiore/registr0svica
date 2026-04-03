@@ -361,13 +361,7 @@
         btnGenerar.disabled = false;
 
         if (data.success) {
-          alert("¡Plantilla llenada y PDF guardado con éxito en Drive!");
-          
-          // Abre el PDF en una nueva pestaña
-          if (data.pdfUrl) {
-            window.open(data.pdfUrl, '_blank'); 
-          }
-          
+          alert("ya se genero el pdf"); // Mensaje exacto solicitado
           modalDetalle.hide(); // Cierra el modal de la partida
         } else {
           alert("Error en el servidor: " + data.message);
