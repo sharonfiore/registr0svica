@@ -633,50 +633,34 @@
       sidebarDetalle.show();
     }
 
-
     async function validarFechasYGenerar() {
       const d = registroSeleccionado;
       let fechaNacFinal = "";
       let fechaBauFinal = "";
     
-      // --- FUNCIÓN INTERNA PARA APLICAR LA LÓGICA DE LOS 4 ESCENARIOS ---
       async function procesarEscenarios(tipo, fecNumerica, fecEscrita) {
         let numLimpia = (fecNumerica && fecNumerica !== "-") ? fecNumerica.trim() : "";
         let escLimpia = (fecEscrita && fecEscrita !== "-") ? fecEscrita.trim() : "";
         let numLarga = formatoFechaLarga(numLimpia);
     
-        // Escenario A: Ambos campos están llenos (Conflicto)
         if (numLimpia !== "" && escLimpia !== "") {
           let eleccion = await pedirEleccionFecha(tipo, escLimpia, numLarga);
-          if (eleccion === 'cancelar') return null; // Escenario A: Cancelar detiene todo
+          if (eleccion === 'cancelar') return null; 
           return (eleccion === 'escrita') ? escLimpia : numLarga;
         } 
-        // Escenario B: Solo está la Fecha Numérica
-        else if (numLimpia !== "") {
-          return numLarga;
-        } 
-        // Escenario C: Solo está la Fecha Escrita
-        else if (escLimpia !== "") {
-          return escLimpia;
-        } 
-        // Escenario D: Ambos campos están vacíos
-        else {
-          return ""; // Se enviará vacío y el .gs pondrá "-------"
-        }
+        else if (numLimpia !== "") return numLarga;
+        else if (escLimpia !== "") return escLimpia;
+        else return ""; 
       }
     
-      // Ejecutar lógica para NACIMIENTO
       fechaNacFinal = await procesarEscenarios("NACIMIENTO", d.fecha_nacimiento, d.fecha_nac_escrito);
-      if (fechaNacFinal === null) return; // Si canceló en el modal
+      if (fechaNacFinal === null) return; 
     
-      // Pausa visual para evitar que los modales se encimen
       await new Promise(r => setTimeout(r, 400));
     
-      // Ejecutar lógica para BAUTISMO
       fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo, d.fecha_bautizo_escrito);
-      if (fechaBauFinal === null) return; // Si canceló en el modal
+      if (fechaBauFinal === null) return; 
     
-      // Proceder a enviar
       enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal);
     }
 
@@ -705,15 +689,20 @@
 
     async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal) {
       const d = registroSeleccionado;
+      // Seleccionamos el botón de generar dentro del panel lateral
       const btn = document.querySelector("#panelDetalle .btn-primary-custom");
-      const original = btn.innerHTML;
+      const originalHTML = btn.innerHTML;
+    
+      // ACTIVAR ESTADO DE CARGA
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando Certificado...`;
     
       try {
         const pckg = { 
            accion: 'generar_partida', 
            datos: { 
              ...registroSeleccionado,
-             libro: d.nro_libro, // Aseguramos que se envíe como 'libro' para el .gs
+             libro: d.nro_libro, // Corrección del campo Libro que salía con guiones
              fechaNac: fechaNacFinal,
              fechaBau: fechaBauFinal,
              notas: document.getElementById('box-notas-margen').value,
@@ -735,7 +724,8 @@
       } catch (e) {
         alert("Error de conexión con el servidor.");
       } finally {
-        btn.innerHTML = original;
+        // RESTAURAR BOTÓN
+        btn.innerHTML = originalHTML;
         btn.disabled = false;
       }
     }
@@ -754,12 +744,11 @@
     
     function pedirEleccionFecha(tipo, escrita, numericaLarga) {
       return new Promise((resolve) => {
-        document.getElementById('conflict-title').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Conflicto de Fechas (${tipo})`;
+        document.getElementById('conflict-title').innerHTML = `<strong>Conflicto de Fechas (${tipo})</strong><br>¿Qué dato desea utilizar en la partida?`;
         
-        // Configuración de botones según tu lógica:
-        // SÍ = Usar Escrita / NO = Usar Numérica (convertida a larga)
-        document.getElementById('btn-use-written').innerHTML = `SÍ (Usar Escrita):<br><small>${escrita}</small>`;
-        document.getElementById('btn-use-numeric').innerHTML = `NO (Usar Numérica):<br><small>${numericaLarga}</small>`;
+        // Texto exacto solicitado por tu jefe
+        document.getElementById('btn-use-written').innerHTML = `SÍ = Usar la fecha ESCRITA:<br><small>'${escrita}'</small>`;
+        document.getElementById('btn-use-numeric').innerHTML = `NO = Usar la fecha NUMÉRICA (la no escrita):<br><small>'${numericaLarga}'</small>`;
         
         document.getElementById('btn-use-written').onclick = () => { modalConflicto.hide(); resolve('escrita'); };
         document.getElementById('btn-use-numeric').onclick = () => { modalConflicto.hide(); resolve('numerica'); };
