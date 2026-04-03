@@ -955,13 +955,13 @@
       sidebarDetalle.show();
     }
     
-    async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal) {
+    async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal, fechaConfFinal) {
       const d = registroSeleccionado;
-      const btn = document.querySelector("#panelDetalle .btn-primary-custom");
+      const btn = document.getElementById("btn-generate-pdf");
       const originalHTML = btn.innerHTML;
     
       btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando Certificado...`;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Generando...`;
     
       try {
         const pckg = { 
@@ -969,12 +969,13 @@
            datos: { 
              ...registroSeleccionado,
              libro: document.getElementById('det-libro').innerText,
+             nro_libro: document.getElementById('det-libro').innerText, // Enviamos ambos por seguridad
              fechaNac: fechaNacFinal,
              lugarNac: document.getElementById('det-lugar-nac').innerText,
              fechaBau: fechaBauFinal,
              lugarBau: document.getElementById('det-lugar-bau').innerText,
-             fechaConf: fechaConfFinal, // La fecha elegida por el modal de conflicto
-             lugarConf: document.getElementById('det-lugar-conf').innerText,
+             fechaConf: fechaConfFinal, 
+             lugarConf: moduloActual === 'confirmacion' ? document.getElementById('det-lugar-conf').innerText : "",
              padrino: document.getElementById('det-padrino').innerText,
              madrina: document.getElementById('det-madrina').innerText,
              ministro: document.getElementById('det-ministro').innerText,
@@ -983,6 +984,7 @@
            usuario: localStorage.getItem('usuarioParroquia')
         };
         
+        // USA LA API_URL CORRESPONDIENTE AL MÓDULO ACTIVO
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pckg) });
         const data = await res.json();
         
@@ -991,10 +993,11 @@
           document.getElementById('btn-open-pdf').href = data.pdfUrl;
           modalExito.show();
         } else {
-          alert("Error: " + data.message);
+          alert("Error del servidor: " + data.message);
         }
       } catch (e) {
-        alert("Error de conexión con el servidor.");
+        alert("Error de conexión. Asegúrate de haber autorizado el script de " + moduloActual.toUpperCase());
+        console.error(e);
       } finally {
         btn.innerHTML = originalHTML;
         btn.disabled = false;
@@ -1005,6 +1008,7 @@
       const d = registroSeleccionado;
       let fechaNacFinal = "";
       let fechaBauFinal = "";
+      let fechaConfFinal = ""; // Nueva variable para el tercer escenario
     
       async function procesarEscenarios(tipo, fecNumerica, fecEscrita) {
         let numLimpia = (fecNumerica && fecNumerica !== "-") ? fecNumerica.trim() : "";
@@ -1012,42 +1016,37 @@
         let numLarga = formatoFechaLarga(numLimpia);
         
         let resultado = "";
-
-        // Escenario A: Conflicto
         if (numLimpia !== "" && escLimpia !== "") {
           let eleccion = await pedirEleccionFecha(tipo, escLimpia, numLarga);
           if (eleccion === 'cancelar') return null; 
           resultado = (eleccion === 'escrita') ? escLimpia : numLarga;
         } 
-        // Escenario B: Solo Numérica
-        else if (numLimpia !== "") {
-          resultado = numLarga;
-        }
-        // Escenario C: Solo Escrita
-        else if (escLimpia !== "") {
-          resultado = escLimpia;
-        }
-        // Escenario D: Vacíos
-        else {
-          resultado = ""; 
-        }
+        else if (numLimpia !== "") resultado = numLarga;
+        else if (escLimpia !== "") resultado = escLimpia;
+        else resultado = ""; 
 
-        // RETORNAR SIEMPRE EN MAYÚSCULAS
         return resultado.toUpperCase();
       }
     
-      // Procesar Nacimiento
+      // 1. Procesar Nacimiento (Común)
       fechaNacFinal = await procesarEscenarios("NACIMIENTO", d.fecha_nacimiento, d.fecha_nac_escrito);
       if (fechaNacFinal === null) return; 
     
-      // Pausa para que no se encimen los modales
       await new Promise(r => setTimeout(r, 400));
     
-      // Procesar Bautismo
-      fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo, d.fecha_bautizo_escrito);
+      // 2. Procesar Bautismo (Común)
+      fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo || d.fecha_bau_original, d.fecha_bautizo_escrito || d.fecha_bau_escrito_original);
       if (fechaBauFinal === null) return; 
+
+      // 3. Procesar Confirmación (SOLO SI EL MÓDULO ES CONFIRMACIÓN)
+      if (moduloActual === 'confirmacion') {
+        await new Promise(r => setTimeout(r, 400));
+        fechaConfFinal = await procesarEscenarios("CONFIRMACIÓN", d.fecha_confirmacion, d.fecha_confirmacion_escrita);
+        if (fechaConfFinal === null) return;
+      }
     
-      enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal);
+      // Llamamos a la función de envío pasando las 3 fechas procesadas
+      enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal, fechaConfFinal);
     }
 
     let fuenteHistorialActual = 'bautismo';
