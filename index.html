@@ -444,11 +444,15 @@
         <div class="text-center mb-4">
           <i class="fas fa-calendar-alt fa-3x text-warning"></i>
           <h4 class="fw-bold mt-3">Conflicto de Formato</h4>
-          <p class="text-muted">Se detectaron dos formatos de fecha. Elija el correcto:</p>
+          <p class="text-muted" id="conflict-title">Se detectaron dos formatos de fecha. Elija el correcto:</p>
         </div>
         <div class="d-grid gap-3">
           <button class="btn btn-outline-primary py-3 rounded-4 fw-bold" id="btn-use-numeric"></button>
           <button class="btn btn-dark py-3 rounded-4 fw-bold" id="btn-use-written"></button>
+        </div>
+        <!-- AGREGADO: El botón de cancelar que faltaba y hacía que el código fallara -->
+        <div class="text-center mt-3">
+          <button class="btn btn-link text-muted" id="btn-cancel-conflict">Detener generación (Cancelar)</button>
         </div>
       </div>
     </div>
@@ -581,7 +585,12 @@
 
     function mostrarResultados(res) {
       const tbody = document.getElementById('results-body');
-      datosActuales = res || []; 
+      // Mapeamos nro_libro a libro para que tu diseño funcione como quieres
+      datosActuales = (res || []).map(item => ({
+        ...item,
+        libro: item.nro_libro // Aquí ocurre la magia: el dato nro_libro ahora se llama libro
+      })); 
+      
       tbody.innerHTML = '';
       if (datosActuales.length === 0) {
         document.getElementById('table-container').classList.add('d-none');
@@ -604,7 +613,7 @@
       const d = registroSeleccionado;
       
       document.getElementById('mod-head-nombre').innerText = d.id;
-      document.getElementById('det-libro').innerText = d.libro;
+      document.getElementById('det-libro').innerText = d.libro; // Ya funciona gracias al mapeo
       document.getElementById('det-foja').innerText = d.foja;
       document.getElementById('det-num').innerText = d.numero;
       
@@ -612,25 +621,60 @@
       document.getElementById('det-padre').innerText = (d.padre || "-").toUpperCase();
       document.getElementById('det-madre').innerText = (d.madre || "-").toUpperCase();
       
-      // Lugar y Fechas Nacimiento
       document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "NO REGISTRA";
-      document.getElementById('det-fecha-nac').innerText = "Fecha Nacimiento Numérica: " + (d.fecha_nacimiento || "-");
-      document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito ? "F. Escrita: " + d.fecha_nac_escrito : "";
+      document.getElementById('det-fecha-nac').innerText = "F. Numérica: " + (d.fecha_nacimiento || "-");
+      document.getElementById('det-fecha-nac-literal').innerText = (d.fecha_nac_escrito && d.fecha_nac_escrito !== "-") ? "F. Escrita: " + d.fecha_nac_escrito : "";
     
-      // Lugar y Fechas Bautismo
       document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "PARROQUIA TACNA";
-      document.getElementById('det-fecha-bau').innerText = "Fecha Bautismo Numérica: " + (d.fecha_bautizo || "-");
-      document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito ? "F. Escrita: " + d.fecha_bautizo_escrito : "";
+      document.getElementById('det-fecha-bau').innerText = "F. Numérica: " + (d.fecha_bautizo || "-");
+      document.getElementById('det-fecha-bau-literal').innerText = (d.fecha_bautizo_escrito && d.fecha_bautizo_escrito !== "-") ? "F. Escrita: " + d.fecha_bautizo_escrito : "";
     
-      // Padrinos
       document.getElementById('det-padrino').innerText = (d.padrino || "-").toUpperCase();
       document.getElementById('det-madrina').innerText = (d.madrina || "-").toUpperCase();
-      
-      // Notas y Anotaciones por separado
       document.getElementById('box-notas-margen').value = d.nota_marginal || "";
       document.getElementById('box-anotaciones').value = d.anotaciones || "";
     
       sidebarDetalle.show();
+    }
+
+    async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal) {
+      const d = registroSeleccionado;
+      const btn = document.querySelector("#panelDetalle .btn-primary-custom");
+      const originalHTML = btn.innerHTML;
+    
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando Certificado...`;
+    
+      try {
+        const pckg = { 
+           accion: 'generar_partida', 
+           datos: { 
+             ...registroSeleccionado,
+             libro: d.libro, // Ya no enviará guiones
+             fechaNac: fechaNacFinal,
+             fechaBau: fechaBauFinal,
+             notas: document.getElementById('box-notas-margen').value,
+             anotaciones: document.getElementById('box-anotaciones').value 
+           },
+           usuario: localStorage.getItem('usuarioParroquia')
+        };
+        
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pckg) });
+        const data = await res.json();
+        
+        if (data.success) {
+          sidebarDetalle.hide();
+          document.getElementById('btn-open-pdf').href = data.pdfUrl;
+          modalExito.show();
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (e) {
+        alert("Error de conexión con el servidor.");
+      } finally {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+      }
     }
 
     async function validarFechasYGenerar() {
@@ -687,49 +731,7 @@
       document.getElementById("historial-loading").classList.add('d-none');
     }
 
-    async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal) {
-      const d = registroSeleccionado;
-      // Seleccionamos el botón de generar dentro del panel lateral
-      const btn = document.querySelector("#panelDetalle .btn-primary-custom");
-      const originalHTML = btn.innerHTML;
     
-      // ACTIVAR ESTADO DE CARGA
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando Certificado...`;
-    
-      try {
-        const pckg = { 
-           accion: 'generar_partida', 
-           datos: { 
-             ...registroSeleccionado,
-             libro: d.libro, // Corrección del campo Libro que salía con guiones
-             fechaNac: fechaNacFinal,
-             fechaBau: fechaBauFinal,
-             notas: document.getElementById('box-notas-margen').value,
-             anotaciones: document.getElementById('box-anotaciones').value 
-           },
-           usuario: localStorage.getItem('usuarioParroquia')
-        };
-        
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pckg) });
-        const data = await res.json();
-        
-        if (data.success) {
-          sidebarDetalle.hide();
-          document.getElementById('btn-open-pdf').href = data.pdfUrl;
-          modalExito.show();
-        } else {
-          alert("Error: " + data.message);
-        }
-      } catch (e) {
-        alert("Error de conexión con el servidor.");
-      } finally {
-        // RESTAURAR BOTÓN
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-      }
-    }
-
     function formatoFechaLarga(fechaStr) {
       if(!fechaStr || fechaStr === "-") return "";
       let p = fechaStr.trim().split("/");
