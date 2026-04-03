@@ -415,8 +415,20 @@
       </div>
 
       <!-- Historial -->
+      <!-- Historial -->
       <div id="tab-historial" class="vista-app d-none">
         <h2 class="fw-bold mb-4">Certificados Emitidos</h2>
+        
+        <!-- Sub-navegación interna del historial -->
+        <div class="d-flex gap-2 mb-4">
+            <button class="btn btn-sm btn-outline-primary active px-4 rounded-pill fw-bold" id="btn-hist-bau" onclick="setHistorialSource('bautismo')">
+                <i class="fas fa-dove me-1"></i> Historial Bautismos
+            </button>
+            <button class="btn btn-sm btn-outline-primary px-4 rounded-pill fw-bold" id="btn-hist-conf" onclick="setHistorialSource('confirmacion')">
+                <i class="fas fa-fire me-1"></i> Historial Confirmaciones
+            </button>
+        </div>
+
         <div class="table-container shadow-sm p-4">
           <div id="historial-loading" class="text-center py-4 d-none"><div class="spinner-border text-primary"></div></div>
           <table class="table table-hover">
@@ -999,26 +1011,50 @@
       enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal);
     }
 
+    let fuenteHistorialActual = 'bautismo';
+
+    // Función para cambiar la fuente de datos del historial
+    function setHistorialSource(source) {
+      fuenteHistorialActual = source;
+      
+      // Actualizar estética de los botones internos
+      document.getElementById('btn-hist-bau').classList.toggle('active', source === 'bautismo');
+      document.getElementById('btn-hist-conf').classList.toggle('active', source === 'confirmacion');
+      
+      cargarHistorial();
+    }
+
     async function cargarHistorial() {
       const cont = document.getElementById("historial-body");
       cont.innerHTML = "";
       document.getElementById("historial-loading").classList.remove('d-none');
+      
+      // Determinamos a qué API llamar basado en la pestaña interna seleccionada
+      const urlParaHistorial = (fuenteHistorialActual === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
+
       try {
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'obtener_historial' }) });
+        const res = await fetch(urlParaHistorial, { 
+          method: 'POST', 
+          body: JSON.stringify({ accion: 'obtener_historial' }) 
+        });
         const obj = await res.json();
+        
         if (obj.data && obj.data.length > 0) {
           obj.data.forEach(g => {
             cont.innerHTML += `<tr class="small">
               <td>${g.fechaHora}</td>
               <td class="fw-bold">${(g.nombreCompleto || "").toUpperCase()}</td>
               <td><span class="badge bg-light text-dark border">${g.usuario}</span></td>
-              <td><a href="${g.link}" target="_blank" class="text-primary fw-bold text-decoration-none">Ver PDF</a></td>
+              <td><a href="${g.link}" target="_blank" class="btn btn-sm btn-outline-primary py-0 fw-bold">Ver PDF</a></td>
             </tr>`;
           });
         } else {
-          cont.innerHTML = "<tr><td colspan='4' class='text-center'>No hay historial disponible.</td></tr>";
+          cont.innerHTML = "<tr><td colspan='4' class='text-center py-4'>No hay historial disponible en este registro.</td></tr>";
         }
-      } catch (e) { console.error(e); }
+      } catch (e) { 
+        console.error(e); 
+        cont.innerHTML = "<tr><td colspan='4' class='text-center text-danger'>Error al cargar los datos.</td></tr>";
+      }
       document.getElementById("historial-loading").classList.add('d-none');
     }
 
