@@ -422,22 +422,35 @@
     let modalExito;
     let registroSeleccionado = null; 
 
-    // 1. CORRECCIÓN: Al cargar la página, verificar sesión
     document.addEventListener("DOMContentLoaded", () => {
       modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
       sidebarDetalle = new bootstrap.Offcanvas(document.getElementById('panelDetalle'));
       modalExito = new bootstrap.Modal(document.getElementById('successPdfModal'));
 
-      // Verificar si ya hay una sesión activa
       if (localStorage.getItem('sesionParroquia') === 'activa') {
         mostrarApp(); 
       }
     });
 
-    // 2. CORRECCIÓN: Función de Login vinculada a tu .gs
+    // --- FUNCIÓN QUE TE FALTABA PARA QUE FUNCIONE EL MENÚ ---
+    function cambiarPestaña(tabId) {
+        // Ocultar todas las secciones
+        document.querySelectorAll('.vista-app').forEach(el => el.classList.add('d-none'));
+        // Quitar estado activo a todos los botones
+        document.querySelectorAll('.nav-pill-custom').forEach(el => el.classList.remove('active'));
+        
+        // Mostrar la sección seleccionada
+        const targetTab = document.getElementById(tabId);
+        if (targetTab) targetTab.classList.remove('d-none');
+        
+        // Activar el botón correspondiente
+        const btnId = "btn-" + tabId;
+        const targetBtn = document.getElementById(btnId);
+        if (targetBtn) targetBtn.classList.add('active');
+    }
+
     async function iniciarSesion(event) {
       event.preventDefault();
-      
       const userField = document.getElementById('username');
       const passField = document.getElementById('password');
       const btnLogin = document.getElementById('btn-login');
@@ -446,7 +459,6 @@
       const usu = userField.value.trim();
       const pas = passField.value.trim();
 
-      // UI: Estado de carga
       btnLogin.disabled = true;
       btnLogin.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Verificando...`;
       errorMsg.classList.add('d-none');
@@ -454,52 +466,38 @@
       try {
         const res = await fetch(API_URL, { 
           method: 'POST', 
-          body: JSON.stringify({ 
-            accion: 'login', 
-            usuario: usu,    // Coincide con tu .gs
-            password: pas    // Coincide con tu .gs
-          }) 
+          mode: 'cors', // Asegurar modo cors
+          body: JSON.stringify({ accion: 'login', usuario: usu, password: pas }) 
         });
-        
         const data = await res.json();
 
         if (data.success) {
-          // Guardar datos en el navegador
           localStorage.setItem('sesionParroquia', 'activa');
           localStorage.setItem('usuarioParroquia', usu);
-          
-          mostrarApp(); // Cambiar de pantalla
+          mostrarApp(); 
         } else {
           errorMsg.classList.remove('d-none');
           btnLogin.disabled = false;
           btnLogin.innerHTML = "Ingresar al Sistema";
         }
       } catch (e) {
-        alert("Error de conexión con el servidor");
+        alert("Error de conexión con el servidor. Verifica que la URL del API sea correcta y esté publicada como 'Cualquiera'.");
         btnLogin.disabled = false;
         btnLogin.innerHTML = "Ingresar al Sistema";
       }
     }
 
-    // 3. CORRECCIÓN: Mostrar la interfaz principal
     function mostrarApp() {
-      // Ocultar login y mostrar dashboard
       document.getElementById('login-screen').classList.add('d-none'); 
       document.getElementById('app-screen').classList.remove('d-none');
-      
-      // Poner el nombre del usuario en el Sidebar
       const usuarioLogueado = localStorage.getItem('usuarioParroquia') || "ADMIN";
       document.getElementById('nav-user-label').innerText = usuarioLogueado.toUpperCase();
-      
-      // Cargar la pestaña de búsqueda por defecto
       cambiarPestaña('tab-busqueda');
       realizarPeticionBusqueda("", "");
     }
 
-    // 4. CORRECCIÓN: Cerrar sesión correctamente
     function cerrarSesion() { 
-      localStorage.removeItem('sesionParroquia'); 
-      localStorage.removeItem('usuarioParroquia'); 
+      localStorage.clear(); 
       location.reload(); 
     }
 
@@ -516,15 +514,19 @@
 
     function mostrarResultados(res) {
       const tbody = document.getElementById('results-body');
-      datosActuales = res; tbody.innerHTML = '';
-      if (!res || res.length === 0) return;
+      datosActuales = res || []; 
+      tbody.innerHTML = '';
+      if (datosActuales.length === 0) {
+        document.getElementById('table-container').classList.add('d-none');
+        return;
+      }
       document.getElementById('table-container').classList.remove('d-none');
-      res.forEach((f, i) => {
+      datosActuales.forEach((f, i) => {
         tbody.innerHTML += `<tr>
           <td class="fw-bold text-primary small">${f.id}</td>
           <td><span class="badge bg-light text-dark border p-2">L:${f.nro_libro} F:${f.foja} P:${f.numero}</span></td>
-          <td class="fw-semibold">${f.nombre_completo.toUpperCase()}</td>
-          <td class="text-muted small">${f.fecha_bautizo}</td>
+          <td class="fw-semibold">${(f.nombre_completo || "").toUpperCase()}</td>
+          <td class="text-muted small">${f.fecha_bautizo || "-"}</td>
           <td><button class="btn btn-action" onclick="abrirPanelDetalle(${i})">Ver Expediente</button></td>
         </tr>`;
       });
@@ -537,13 +539,13 @@
       document.getElementById('det-libro').innerText = d.nro_libro;
       document.getElementById('det-foja').innerText = d.foja;
       document.getElementById('det-num').innerText = d.numero;
-      document.getElementById('det-nombres-apellidos').innerText = d.nombre_completo.toUpperCase();
+      document.getElementById('det-nombres-apellidos').innerText = (d.nombre_completo || "").toUpperCase();
       document.getElementById('det-padre').innerText = (d.padre || "-").toUpperCase();
       document.getElementById('det-madre').innerText = (d.madre || "-").toUpperCase();
       document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "TACNA";
-      document.getElementById('det-fecha-nac').innerText = "F. Nacimiento: " + d.fecha_nacimiento;
+      document.getElementById('det-fecha-nac').innerText = "F. Nacimiento: " + (d.fecha_nacimiento || "-");
       document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "PARROQUIA TACNA";
-      document.getElementById('det-fecha-bau').innerText = "F. Bautizo: " + d.fecha_bautizo;
+      document.getElementById('det-fecha-bau').innerText = "F. Bautizo: " + (d.fecha_bautizo || "-");
       
       const notaOriginal = (d.nota_marginal || "") + " " + (d.anotaciones || "");
       document.getElementById('box-notas-margen-confirma').value = notaOriginal.trim() || "SIN ANOTACIONES EXTRA.";
@@ -551,11 +553,10 @@
       sidebarDetalle.show();
     }
 
-    // Lógica de fechas y generación PDF (simplificada para este ejemplo)
     async function validarFechasYGenerar() {
       const btn = document.querySelector("#panelDetalle .btn-primary-custom");
       const original = btn.innerHTML;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Generando Certificado...`;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Generando...`;
       btn.disabled = true;
 
       try {
@@ -572,7 +573,7 @@
           document.getElementById('btn-open-pdf').href = data.pdfUrl;
           modalExito.show();
         }
-      } catch (e) { alert("Error"); }
+      } catch (e) { alert("Error al conectar con el servidor."); }
       
       btn.innerHTML = original;
       btn.disabled = false;
@@ -585,15 +586,19 @@
       try {
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'obtener_historial' }) });
         const obj = await res.json();
-        obj.data.forEach(g => {
-          cont.innerHTML += `<tr class="small">
-            <td>${g.fechaHora}</td>
-            <td class="fw-bold">${g.nombreCompleto}</td>
-            <td><span class="badge bg-light text-dark border">${g.usuario}</span></td>
-            <td><a href="${g.link}" target="_blank" class="text-primary fw-bold text-decoration-none">Ver PDF</a></td>
-          </tr>`;
-        });
-      } catch (e) {}
+        if (obj.data && obj.data.length > 0) {
+          obj.data.forEach(g => {
+            cont.innerHTML += `<tr class="small">
+              <td>${g.fechaHora}</td>
+              <td class="fw-bold">${(g.nombreCompleto || "").toUpperCase()}</td>
+              <td><span class="badge bg-light text-dark border">${g.usuario}</span></td>
+              <td><a href="${g.link}" target="_blank" class="text-primary fw-bold text-decoration-none">Ver PDF</a></td>
+            </tr>`;
+          });
+        } else {
+          cont.innerHTML = "<tr><td colspan='4' class='text-center'>No hay historial disponible.</td></tr>";
+        }
+      } catch (e) { console.error(e); }
       document.getElementById("historial-loading").classList.add('d-none');
     }
   </script>
