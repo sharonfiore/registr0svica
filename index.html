@@ -188,11 +188,18 @@
     async function iniciarSesion(event) {
       event.preventDefault();
       manejarUI('login', true);
+      const usuarioIngresado = document.getElementById('username').value; // Capturamos el usuario
+      const passwordIngresado = document.getElementById('password').value;
+
       try {
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'login', usuario: document.getElementById('username').value, password: document.getElementById('password').value }) });
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'login', usuario: usuarioIngresado, password: passwordIngresado }) });
         const data = await res.json();
         manejarUI('login', false);
-        if(data.success) { localStorage.setItem('sesionParroquia', 'activa'); mostrarDashboard(); realizarPeticionBusqueda("", ""); } 
+        if(data.success) { 
+          localStorage.setItem('sesionParroquia', 'activa'); 
+          localStorage.setItem('usuarioParroquia', usuarioIngresado); // Guardamos el usuario para el historial
+          mostrarDashboard(); realizarPeticionBusqueda("", ""); 
+        } 
         else { document.getElementById('login-error').classList.remove('d-none'); }
       } catch (e) { alert("Error de conexión API."); manejarUI('login', false); }
     }
@@ -335,6 +342,7 @@
       const d = registroSeleccionado;
       
       let datosParaPlantilla = {
+        id: d.id, // NUEVO: Enviamos el ID para guardarlo en el historial
         libro: d.nro_libro, foja: d.foja, numero: d.numero,
         nombres: d.nombres, apellidos: d.apellidos,
         padre: d.padre, madre: d.madre,
@@ -344,6 +352,9 @@
         notas: d.nota_marginal, anotaciones: d.anotaciones
       };
 
+      // Recuperar el usuario logueado de la memoria del navegador
+      let usuarioGuardado = localStorage.getItem('usuarioParroquia') || "Desconocido";
+
       let btnGenerar = document.querySelector(".btn-success");
       let textoOriginal = btnGenerar.innerHTML;
       btnGenerar.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Generando Partida...`;
@@ -352,7 +363,11 @@
       try {
         const res = await fetch(API_URL, {
           method: 'POST',
-          body: JSON.stringify({ accion: 'generar_partida', datos: datosParaPlantilla })
+          body: JSON.stringify({ 
+            accion: 'generar_partida', 
+            datos: datosParaPlantilla,
+            usuario: usuarioGuardado // NUEVO: Enviamos el usuario para el historial
+          })
         });
         const data = await res.json();
 
@@ -361,7 +376,13 @@
         btnGenerar.disabled = false;
 
         if (data.success) {
-          alert("ya se genero el pdf"); // Mensaje exacto solicitado
+          alert("¡Partida generada y guardada en el Historial exitosamente!"); // Mensaje final
+          
+          // Abre el PDF generado en una pestaña nueva al instante
+          if (data.pdfUrl) {
+            window.open(data.pdfUrl, '_blank'); 
+          }
+          
           modalDetalle.hide(); // Cierra el modal de la partida
         } else {
           alert("Error en el servidor: " + data.message);
