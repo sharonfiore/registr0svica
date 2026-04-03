@@ -450,10 +450,10 @@
     </div>
     <!-- Cambiamos p-4 por p-3 en el body del panel para ganar espacio en los bordes -->
     <div class="offcanvas-body p-3">
-      
-      <!-- Reducimos mb-4 a mb-2 para pegar más los cuadros de arriba -->
+  
+      <!-- 1. Cifras: Libro, Foja, Partida -->
       <div class="d-flex gap-2 mb-2">
-        <div class="detail-section flex-grow-1 text-center py-1"> <!-- py-1 para que sea más flaco -->
+        <div class="detail-section flex-grow-1 text-center py-1">
           <div class="detail-label">Libro</div>
           <div class="detail-value fs-6" id="det-libro"></div>
         </div>
@@ -467,7 +467,7 @@
         </div>
       </div>
     
-      <!-- Cambiamos mb-3 a mb-2 en todos los siguientes -->
+      <!-- 2. Nombres y Apellidos Separados -->
       <div class="row g-2 mb-2">
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
@@ -483,6 +483,7 @@
         </div>
       </div>
     
+      <!-- 3. Padres -->
       <div class="row g-2 mb-2">
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
@@ -498,6 +499,7 @@
         </div>
       </div>
     
+      <!-- 4. Nacimiento -->
       <div class="detail-section mb-2">
         <div class="detail-label">Lugar de Nacimiento:</div>
         <div class="detail-value small editable-field" id="det-lugar-nac"></div>
@@ -509,6 +511,7 @@
         </div>
       </div>
     
+      <!-- 5. Bautismo -->
       <div class="detail-section mb-2" style="background: #e9effd; border-color: var(--brand-accent)">
         <div class="detail-label text-accent">Datos del Bautismo</div>
         <div class="detail-value small editable-field" id="det-lugar-bau"></div>
@@ -520,56 +523,70 @@
         </div>
       </div>
     
+      <!-- 6. SECCIÓN DINÁMICA: Confirmación (Se muestra solo en ese módulo) -->
+      <div id="section-confirmacion-panel" class="d-none">
+        <div class="detail-section mb-2" style="background: #fff4e5; border-color: #ff9800">
+          <div class="detail-label text-warning text-dark">Datos de la Confirmación</div>
+          <div class="detail-value small editable-field" id="det-lugar-conf"></div>
+          <div class="small fw-bold text-dark border-top border-warning-subtle mt-1 pt-1" style="font-size: 0.75rem;">
+             F. Numérica: <span class="editable-field" id="det-fecha-conf"></span>
+          </div>
+          <div class="small text-muted fst-italic" style="font-size: 0.75rem;">
+             F. Escrita: <span class="editable-field text-dark fw-medium" id="det-fecha-conf-literal"></span>
+          </div>
+        </div>
+      </div>
+    
+      <!-- 7. Ministro del Sacramento (Común a ambos) -->
+      <div class="detail-section mb-2">
+        <div class="detail-label">Ministro del Sacramento</div>
+        <div class="detail-value small editable-field" id="det-ministro"></div>
+      </div>
+    
+      <!-- 8. Padrinos -->
       <div class="row g-2 mb-2">
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
             <div class="detail-label">Padrino</div>
-            <div class="detail-value small" id="det-padrino"></div>
+            <div class="detail-value small editable-field" id="det-padrino"></div>
           </div>
         </div>
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
             <div class="detail-label">Madrina</div>
-            <div class="detail-value small" id="det-madrina"></div>
+            <div class="detail-value small editable-field" id="det-madrina"></div>
           </div>
         </div>
       </div>
     
-      <!-- Reducimos el alto de los textarea para que ocupen menos -->
+      <!-- 9. Notas y Anotaciones -->
       <div class="detail-section mb-2">
         <div class="detail-label">Notas Marginales</div>
-        <!-- NUEVO: Se agregó 'readonly' -->
         <textarea id="box-notas-margen" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2" readonly></textarea>
       </div>
     
       <div class="detail-section mb-2">
         <div class="detail-label">Anotaciones Extra</div>
-        <!-- NUEVO: Se agregó 'readonly' -->
         <textarea id="box-anotaciones" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2" readonly></textarea>
       </div>
     
-      <!-- NUEVO: Se agregó el ID 'btn-generate-pdf' -->
       <button id="btn-generate-pdf" class="btn btn-primary-custom shadow-lg mt-2 py-2" onclick="validarFechasYGenerar()">
         <i class="fas fa-print me-2"></i> Generar Certificado
       </button>
-
+    
       <!-- Botones de Edición -->
       <div class="mt-3 border-top pt-3">
         <button class="btn btn-outline-secondary w-100 mb-2 fw-bold" onclick="habilitarEdicion()" id="btn-edit-record">
           <i class="fas fa-edit me-2"></i> Habilitar Edición
         </button>
-        
         <div id="edit-controls" class="d-none d-flex gap-2 mb-2">
           <button class="btn btn-success flex-grow-1 fw-bold" onclick="guardarCambiosEdicion()" id="btn-save-edit">
             <i class="fas fa-save me-1"></i> Guardar
           </button>
-          <button class="btn btn-light border fw-bold" onclick="cancelarEdicion()">
-            Cancelar
-          </button>
+          <button class="btn btn-light border fw-bold" onclick="cancelarEdicion()">Cancelar</button>
         </div>
       </div>
-    
-    </div>
+    </div>   
   </div>
 
   <!-- ==================== MODAL DE ÉXITO PDF ==================== -->
@@ -889,36 +906,40 @@
       
       document.getElementById('mod-head-nombre').innerText = d.id;
       
-      // Asignar valores y agregar la clase 'editable-field'
-      document.getElementById('det-libro').innerText = d.libro || ""; document.getElementById('det-libro').classList.add('editable-field');
-      document.getElementById('det-foja').innerText = d.foja || ""; document.getElementById('det-foja').classList.add('editable-field');
-      document.getElementById('det-num').innerText = d.numero || ""; document.getElementById('det-num').classList.add('editable-field');
-      
-      // NOMBRES Y APELLIDOS SEPARADOS
-      document.getElementById('det-nombres').innerText = (d.nombres || "").toUpperCase().trim();
-      document.getElementById('det-nombres').classList.add('editable-field');
-      
-      document.getElementById('det-apellidos').innerText = (d.apellidos || "").toUpperCase().trim();
-      document.getElementById('det-apellidos').classList.add('editable-field');
-      
-      document.getElementById('det-padre').innerText = (d.padre || "").toUpperCase(); document.getElementById('det-padre').classList.add('editable-field');
-      document.getElementById('det-madre').innerText = (d.madre || "").toUpperCase(); document.getElementById('det-madre').classList.add('editable-field');
-      
-      document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || ""; document.getElementById('det-lugar-nac').classList.add('editable-field');
-      document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || ""; document.getElementById('det-fecha-nac').classList.add('editable-field');
-      document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito || ""; document.getElementById('det-fecha-nac-literal').classList.add('editable-field');
+      // Campos básicos
+      const campos = ['det-libro', 'det-foja', 'det-num', 'det-nombres', 'det-apellidos', 'det-padre', 'det-madre', 'det-padrino', 'det-madrina', 'det-ministro'];
+      campos.forEach(id => {
+        let key = id.replace('det-', '');
+        // Caso especial para los nombres y ministro
+        let valor = d[key] || "";
+        document.getElementById(id).innerText = valor.toUpperCase();
+        document.getElementById(id).classList.add('editable-field');
+      });
     
-      document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || ""; document.getElementById('det-lugar-bau').classList.add('editable-field');
-      document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || ""; document.getElementById('det-fecha-bau').classList.add('editable-field');
-      document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || ""; document.getElementById('det-fecha-bau-literal').classList.add('editable-field');
+      // Lugar y Fechas (Nacimiento y Bautismo siempre visibles)
+      document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
+      document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
+      document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito || "";
     
-      document.getElementById('det-padrino').innerText = (d.padrino || "").toUpperCase(); document.getElementById('det-padrino').classList.add('editable-field');
-      document.getElementById('det-madrina').innerText = (d.madrina || "").toUpperCase(); document.getElementById('det-madrina').classList.add('editable-field');
-      
+      document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
+      document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
+      document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
+    
+      // Lógica específica para módulo Confirmación
+      const panelConfi = document.getElementById('section-confirmacion-panel');
+      if (moduloActual === 'confirmacion') {
+        panelConfi.classList.remove('d-none');
+        document.getElementById('det-lugar-conf').innerText = d.lugar_confirmacion || "";
+        document.getElementById('det-fecha-conf').innerText = d.fecha_confirmacion || "";
+        document.getElementById('det-fecha-conf-literal').innerText = d.fecha_confirmacion_escrita || "";
+      } else {
+        panelConfi.classList.add('d-none');
+      }
+    
       document.getElementById('box-notas-margen').value = d.nota_marginal || "";
       document.getElementById('box-anotaciones').value = d.anotaciones || "";
     
-      cancelarEdicion(); // Entra en modo lectura por defecto
+      cancelarEdicion();
       sidebarDetalle.show();
     }
     
@@ -1137,18 +1158,15 @@
       const btn = document.getElementById('btn-save-edit');
       const originalHTML = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Guardando...`;
-
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>...`;
+    
       const datosEditados = {
         id: registroSeleccionado.id,
         nro_libro: document.getElementById('det-libro').innerText.trim(),
         foja: document.getElementById('det-foja').innerText.trim(),
         numero: document.getElementById('det-num').innerText.trim(),
-        
-        // AHORA RECOGE DE LAS CAJAS SEPARADAS
         nombres: document.getElementById('det-nombres').innerText.trim(),
         apellidos: document.getElementById('det-apellidos').innerText.trim(),
-        
         padre: document.getElementById('det-padre').innerText.trim(),
         madre: document.getElementById('det-madre').innerText.trim(),
         lugar_nacimiento: document.getElementById('det-lugar-nac').innerText.trim(),
@@ -1159,31 +1177,29 @@
         fecha_bautizo_escrito: document.getElementById('det-fecha-bau-literal').innerText.trim(),
         padrino: document.getElementById('det-padrino').innerText.trim(),
         madrina: document.getElementById('det-madrina').innerText.trim(),
+        ministro: document.getElementById('det-ministro').innerText.trim(), // <--- Guardar Ministro
         nota_marginal: document.getElementById('box-notas-margen').value,
-        anotaciones: document.getElementById('box-anotaciones').value,
-        ministro: registroSeleccionado.ministro
+        anotaciones: document.getElementById('box-anotaciones').value
       };
-
+    
+      // Si es confirmación, añadimos sus campos específicos al objeto de envío
+      if (moduloActual === 'confirmacion') {
+        datosEditados.lugar_confirmacion = document.getElementById('det-lugar-conf').innerText.trim();
+        datosEditados.fecha_confirmacion = document.getElementById('det-fecha-conf').innerText.trim();
+        datosEditados.fecha_confirmacion_escrita = document.getElementById('det-fecha-conf-literal').innerText.trim();
+      }
+    
       try {
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'editar', datos: datosEditados }) });
         const data = await res.json();
-        
         if (data.success) {
-          cancelarEdicion(); // Bloquea los campos de nuevo
-          ejecutarBusqueda(); // Actualiza la tabla en el fondo automáticamente
-          
-          // NUEVO: Mostramos el modal elegante en vez del molesto 'alert()'
+          cancelarEdicion();
+          ejecutarBusqueda();
           let modalUpdateSuccess = new bootstrap.Modal(document.getElementById('updateSuccessModal'));
           modalUpdateSuccess.show();
-        } else { 
-          alert("Error: " + data.message); 
-        }
-      } catch (e) { 
-        alert("Error de conexión al guardar."); 
-      } finally { 
-        btn.disabled = false; 
-        btn.innerHTML = originalHTML; 
-      }
+        } else { alert("Error: " + data.message); }
+      } catch (e) { alert("Error de conexión al guardar."); } 
+      finally { btn.disabled = false; btn.innerHTML = originalHTML; }
     }
   </script>
 </body>
