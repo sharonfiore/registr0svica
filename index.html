@@ -512,7 +512,29 @@
       document.getElementById('loading-indicator').classList.add('d-none');
     }
 
-    function ejecutarBusqueda() { realizarPeticionBusqueda(document.getElementById('search-input').value, document.getElementById('year-filter').value); }
+    // --- FUNCIÓN PARA RECOGER LOS DATOS DEL BUSCADOR ---
+    function ejecutarBusqueda() {
+      const termino = document.getElementById('search-input').value.trim();
+      const anio = document.getElementById('year-filter').value.trim();
+      
+      // Si el usuario está en la pestaña historial y busca algo, 
+      // lo regresamos a la pestaña de búsqueda automáticamente
+      cambiarPestaña('tab-busqueda');
+      
+      realizarPeticionBusqueda(termino, anio);
+    }
+
+    // ESTO HACE QUE EL "ENTER" FUNCIONE:
+      document.getElementById('search-input').addEventListener('keypress', (e) => { 
+        if (e.key === 'Enter') ejecutarBusqueda(); 
+      });
+      document.getElementById('year-filter').addEventListener('keypress', (e) => { 
+        if (e.key === 'Enter') ejecutarBusqueda(); 
+      });
+
+      if (localStorage.getItem('sesionParroquia') === 'activa') {
+        mostrarApp(); 
+      }
     function limpiarFiltros() { document.getElementById('search-input').value = ''; document.getElementById('year-filter').value = ''; realizarPeticionBusqueda("", ""); }
 
     function mostrarResultados(res) {
