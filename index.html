@@ -752,57 +752,7 @@
     // 1. URLs de tus Google Sheets (Reemplaza los links por los tuyos reales)
     const SHEET_BAUTISMO = "https://docs.google.com/spreadsheets/d/1KQBNB5D7y47LohUwpOIOYOWUQ3YUlUVnCSnhiH1u8-Y/edit";
     const SHEET_CONFIRMACION = "https://docs.google.com/spreadsheets/d/1o-VH1zesx4HnEXqtgaA3OS9IP2OEm3OEIgDSryCRRtw/edit";
-
-    // 3. Función mostrarResultados (Corregida para añadir columna Catequesis)
-    function mostrarResultados(res) {
-      const thead = document.getElementById('table-head');
-      const tbody = document.getElementById('results-body');
-      
-      if (!thead || !tbody) return; // Esto evita que el código se rompa si no encuentra los IDs
-
-      // Generar cabecera según el módulo
-      let headerHTML = `<tr><th>ID</th><th>Libro / Foja / Partida</th><th>Nombre Completo</th>`;
-      if(moduloActual === 'confirmacion') headerHTML += `<th>Catequesis</th>`;
-      headerHTML += `<th>F. ${moduloActual === 'confirmacion' ? 'Confirma.' : 'Bautizo'}</th><th>Acción</th></tr>`;
-      thead.innerHTML = headerHTML;
-
-      if (res) {
-        datosActuales = (res || []).map(item => ({ ...item, libro: item.nro_libro }));
-        paginaActual = 1;
-      }
-
-      tbody.innerHTML = '';
-      if (datosActuales.length === 0) {
-        document.getElementById('table-container').classList.add('d-none');
-        return;
-      }
-      document.getElementById('table-container').classList.remove('d-none');
-
-      const inicio = (paginaActual - 1) * filasPorPagina;
-      const fin = inicio + filasPorPagina;
-      const datosPaginados = datosActuales.slice(inicio, fin);
-
-      datosPaginados.forEach((f, i) => {
-        const indiceReal = inicio + i;
-        let rowHTML = `<tr>
-          <td class="fw-bold text-primary small align-middle">${f.id}</td>
-          <td class="align-middle"><span class="badge bg-light text-dark border p-2">L:${f.libro} F:${f.foja} P:${f.numero}</span></td>
-          <td class="align-middle">
-            <span class="fw-semibold d-block text-dark">${(f.nombre_completo || "").toUpperCase()}</span>
-            <small class="text-muted" style="font-size: 0.70rem;">
-               <i class="fas fa-users me-1 opacity-50"></i> ${(f.padre || "-").toUpperCase()} y ${(f.madre || "-").toUpperCase()}
-            </small>
-          </td>`;
-
-        if(moduloActual === 'confirmacion') rowHTML += `<td class="small fw-bold text-success">${f.catequesis || "-"}</td>`;
-
-        rowHTML += `<td class="text-muted small align-middle">${f.fecha_confirmacion || f.fecha_bautizo || "-"}</td>
-          <td class="align-middle"><button class="btn btn-action btn-sm" onclick="abrirPanelDetalle(${indiceReal})">Ver</button></td></tr>`;
-        tbody.innerHTML += rowHTML;
-      });
-      renderizarPaginacion();
-    }
-    
+  
     document.addEventListener("DOMContentLoaded", () => {
       modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
       sidebarDetalle = new bootstrap.Offcanvas(document.getElementById('panelDetalle'));
@@ -883,29 +833,30 @@
         cargarSacerdotes();
       } catch (e) { alert("Error al activar sacerdote"); }
     }
-
+    
+    // --- CORRECCIÓN EN LOGIN (Para evitar error de conexión) ---
     async function iniciarSesion(event) {
       event.preventDefault();
       const userField = document.getElementById('username');
       const passField = document.getElementById('password');
       const btnLogin = document.getElementById('btn-login');
       const errorMsg = document.getElementById('login-error');
-
+    
       const usu = userField.value.trim();
       const pas = passField.value.trim();
-
+    
       btnLogin.disabled = true;
       btnLogin.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Verificando...`;
       errorMsg.classList.add('d-none');
-
+    
       try {
+        // ELIMINAMOS 'mode: cors' para que el navegador use el modo simple
         const res = await fetch(API_BAUTISMO, {
-          method: 'POST', 
-          mode: 'cors', // Asegurar modo cors
+          method: 'POST',
           body: JSON.stringify({ accion: 'login', usuario: usu, password: pas }) 
         });
         const data = await res.json();
-
+    
         if (data.success) {
           localStorage.setItem('sesionParroquia', 'activa');
           localStorage.setItem('usuarioParroquia', usu);
@@ -916,10 +867,73 @@
           btnLogin.innerHTML = "Ingresar al Sistema";
         }
       } catch (e) {
-        alert("Error de conexión con el servidor. Verifica que la URL del API sea correcta y esté publicada como 'Cualquiera'.");
+        console.error("Error de login:", e);
+        alert("Error de conexión. Asegúrate de que el Script esté publicado como 'Cualquiera' (Anyone) y la URL sea la de 'Ejecución'.");
         btnLogin.disabled = false;
         btnLogin.innerHTML = "Ingresar al Sistema";
       }
+    }
+    
+    // --- CORRECCIÓN EN MOSTRAR RESULTADOS (Para que se listen los datos) ---
+    function mostrarResultados(res) {
+      const thead = document.getElementById('table-head');
+      const tbody = document.getElementById('results-body');
+      const tableCont = document.getElementById('table-container');
+      
+      if (!thead || !tbody) return;
+    
+      // Si recibimos datos nuevos de la API, los guardamos
+      if (res && Array.isArray(res)) {
+        datosActuales = res.map(item => ({ 
+          ...item, 
+          libro: item.nro_libro || item.libro // Normalizamos el nombre de la propiedad
+        }));
+        paginaActual = 1;
+      }
+    
+      tbody.innerHTML = '';
+    
+      if (!datosActuales || datosActuales.length === 0) {
+        tableCont.classList.add('d-none');
+        document.getElementById('pagination-info').innerText = "No se encontraron registros.";
+        return;
+      }
+    
+      tableCont.classList.remove('d-none');
+    
+      // Generar cabecera dinámica
+      let headerHTML = `<tr><th>ID</th><th>Libro / Foja / Partida</th><th>Nombre Completo</th>`;
+      if(moduloActual === 'confirmacion') headerHTML += `<th>Catequesis</th>`;
+      headerHTML += `<th>F. Sacramento</th><th>Acción</th></tr>`;
+      thead.innerHTML = headerHTML;
+    
+      const inicio = (paginaActual - 1) * filasPorPagina;
+      const fin = inicio + filasPorPagina;
+      const datosPaginados = datosActuales.slice(inicio, fin);
+    
+      datosPaginados.forEach((f, i) => {
+        const indiceReal = inicio + i;
+        // Usamos || para captar cualquier fecha que venga del backend
+        let fechaSacramento = f.fecha_confirmacion || f.fecha_bautizo || "-";
+    
+        let rowHTML = `<tr>
+          <td class="fw-bold text-primary small align-middle">${f.id}</td>
+          <td class="align-middle"><span class="badge bg-light text-dark border p-2">L:${f.libro} F:${f.foja} P:${f.numero}</span></td>
+          <td class="align-middle">
+            <span class="fw-semibold d-block text-dark">${(f.nombre_completo || "").toUpperCase()}</span>
+            <small class="text-muted" style="font-size: 0.70rem;">
+               <i class="fas fa-users me-1 opacity-50"></i> ${(f.padre || "-").toUpperCase()} y ${(f.madre || "-").toUpperCase()}
+            </small>
+          </td>`;
+    
+        if(moduloActual === 'confirmacion') rowHTML += `<td class="small fw-bold text-success">${f.catequesis || "-"}</td>`;
+    
+        rowHTML += `<td class="text-muted small align-middle">${fechaSacramento}</td>
+          <td class="align-middle"><button class="btn btn-action btn-sm" onclick="abrirPanelDetalle(${indiceReal})">Ver</button></td></tr>`;
+        tbody.innerHTML += rowHTML;
+      });
+      
+      renderizarPaginacion();
     }
 
     function mostrarApp() {
