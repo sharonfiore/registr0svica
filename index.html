@@ -420,9 +420,12 @@
           <p class="mt-3 fw-semibold text-muted">Consultando archivos...</p>
         </div>
 
+        <!-- Tabla de Resultados -->
         <div id="table-container" class="table-container shadow-sm d-none">
           <table class="table mb-0 table-hover">
-            
+            <thead id="table-head">
+              <!-- La cabecera se genera automáticamente por JavaScript -->
+            </thead>
             <tbody id="results-body"></tbody>
           </table>
         </div>
@@ -744,10 +747,20 @@
       const thead = document.getElementById('table-head');
       const tbody = document.getElementById('results-body');
       
-      // Definir encabezado según el módulo
-      let headerHTML = `<tr><th>ID</th><th>Libro / Foja / Partida</th><th>Nombre Completo</th>`;
-      if(moduloActual === 'confirmacion') headerHTML += `<th>Catequesis</th>`; // Nueva Columna
-      headerHTML += `<th>F. ${moduloActual === 'confirmacion' ? 'Confirma.' : 'Bautizo'}</th><th>Acción</th></tr>`;
+      // Generar cabecera dinámica según el módulo
+      let headerHTML = `<tr>
+        <th>ID</th>
+        <th>Libro / Foja / Partida</th>
+        <th>Nombre Completo</th>`;
+      
+      if(moduloActual === 'confirmacion') {
+        headerHTML += `<th>Catequesis</th>`; // Columna solicitada
+      }
+      
+      headerHTML += `<th>F. ${moduloActual === 'confirmacion' ? 'Confirma.' : 'Bautizo'}</th>
+        <th>Acción</th>
+      </tr>`;
+      
       thead.innerHTML = headerHTML;
 
       if (res) {
@@ -756,7 +769,10 @@
       }
 
       tbody.innerHTML = '';
-      if (datosActuales.length === 0) { document.getElementById('table-container').classList.add('d-none'); return; }
+      if (datosActuales.length === 0) {
+        document.getElementById('table-container').classList.add('d-none');
+        return;
+      }
       document.getElementById('table-container').classList.remove('d-none');
 
       const inicio = (paginaActual - 1) * filasPorPagina;
@@ -774,7 +790,7 @@
                <i class="fas fa-users me-1 opacity-50"></i> ${(f.padre || "-").toUpperCase()} y ${(f.madre || "-").toUpperCase()}
             </small>
           </td>`;
-        
+
         if(moduloActual === 'confirmacion') {
           rowHTML += `<td class="align-middle small fw-bold text-success">${f.catequesis || "-"}</td>`;
         }
@@ -787,7 +803,7 @@
 
       renderizarPaginacion();
     }
-
+    
     document.addEventListener("DOMContentLoaded", () => {
       modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
       sidebarDetalle = new bootstrap.Offcanvas(document.getElementById('panelDetalle'));
@@ -950,23 +966,27 @@
       document.getElementById('det-padre').innerText = (d.padre || "").toUpperCase();
       document.getElementById('det-madre').innerText = (d.madre || "").toUpperCase();
       document.getElementById('det-ministro').innerText = (d.ministro || "").toUpperCase();
+      
       document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
       document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
       document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito || "";
 
-      // ARREGLO DE DATOS DE BAUTISMO Y LUGAR EN CONFIRMACIÓN
+      const panelConfi = document.getElementById('section-confirmacion-panel');
+      
       if (moduloActual === 'confirmacion') {
-        document.getElementById('section-confirmacion-panel').classList.remove('d-none');
+        panelConfi.classList.remove('d-none');
+        // Datos de la Confirmación
         document.getElementById('det-lugar-conf').innerText = d.lugar_confirmacion || "";
         document.getElementById('det-fecha-conf').innerText = d.fecha_confirmacion || "";
         document.getElementById('det-fecha-conf-literal').innerText = d.fecha_confirmacion_escrita || "";
 
-        // Para Confirmación, los datos de bautismo se llaman 'lugar_bautizo' y 'fecha_bau_original'
-        document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
+        // CORRECCIÓN: Datos del Bautismo dentro de la ficha de Confirmación
+        document.getElementById('det-lugar-bau').innerText = d.lugar_bautismo || "";
         document.getElementById('det-fecha-bau').innerText = d.fecha_bau_original || "";
         document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bau_escrito_original || "";
       } else {
-        document.getElementById('section-confirmacion-panel').classList.add('d-none');
+        panelConfi.classList.add('d-none');
+        // Datos del Bautismo normal
         document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
         document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
         document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
