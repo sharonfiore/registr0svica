@@ -622,6 +622,9 @@
 
 
     async function validarFechasYGenerar() {
+      const d = registroSeleccionado; 
+      let fn = ""; let fb = "";
+      
       const btn = document.querySelector("#panelDetalle .btn-primary-custom");
       const original = btn.innerHTML;
       btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Generando...`;
@@ -633,8 +636,10 @@
            accion: 'generar_partida', 
            datos: { 
              ...registroSeleccionado, 
-             notas: document.getElementById('box-notas-margen').value, // Recoge nota marginal
-             anotaciones: document.getElementById('box-anotaciones').value // Recoge anotaciones por separado
+             // 'notas' es lo que el script .gs pondrá en la celda B25
+             notas: document.getElementById('box-notas-margen').value, 
+             // 'anotaciones' viaja aparte y no entrará a la celda B25
+             anotaciones: document.getElementById('box-anotaciones').value 
            },
            usuario: localStorage.getItem('usuarioParroquia')
         };
