@@ -365,12 +365,15 @@
         <small class="text-muted fw-semibold">Sistema de Archivo</small>
       </div>
       
-      <!-- NUEVOS BOTONES DE MÓDULO -->
       <button class="nav-pill-custom active" onclick="setModulo('bautismo')" id="btn-mod-bautismo">
         <i class="fas fa-dove me-2"></i> Bautismos
       </button>
       <button class="nav-pill-custom" onclick="setModulo('confirmacion')" id="btn-mod-confirmacion">
         <i class="fas fa-fire me-2"></i> Confirmación
+      </button>
+
+      <button class="nav-pill-custom" onclick="abrirModalSacerdotes()" id="btn-mod-sacerdotes">
+        <i class="fas fa-user-tie me-2"></i> Sacerdotes
       </button>
 
       <div class="mt-4 pt-4 border-top">
@@ -710,6 +713,34 @@
     </div>
   </div>
 
+  <!-- INPUT OCULTO PARA EL SACERDOTE ACTIVO -->
+  <input type="hidden" id="input-sacerdote-activo" value="">
+
+  <!-- MODAL DE GESTIÓN DE SACERDOTES -->
+  <div class="modal fade" id="modalSacerdotes" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+        <div class="modal-header border-0 pb-0 mt-3 px-4">
+          <h5 class="fw-bold text-parroquia"><i class="fas fa-user-tie text-primary me-2"></i>Sacerdotes</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="input-group mb-4 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+            <input type="text" id="nuevo-sacerdote" class="form-control border-0 bg-light px-3" placeholder="Ej: Pbro. Juan Pérez">
+            <button class="btn btn-primary-custom px-4" style="border-radius: 0; width: auto;" onclick="agregarSacerdote()" id="btn-add-sac">Agregar</button>
+          </div>
+          <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0">
+              <tbody id="lista-sacerdotes">
+                <!-- Se llena por JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // DEFINE AQUÍ LAS DOS URL DE TUS APPSCRIPT
@@ -739,14 +770,17 @@
       // Actualizar link del botón de Google Sheets
       document.getElementById('btn-open-gsheet').href = (mod === 'bautismo') ? SHEET_BAUTISMO : SHEET_CONFIRMACION;
       
-      document.getElementById('btn-mod-bautismo').classList.toggle('active', mod === 'bautismo');
-      document.getElementById('btn-mod-confirmacion').classList.toggle('active', mod === 'confirmacion');
-      
       document.getElementById('search-input').value = "";
       document.getElementById('year-filter').value = "";
       document.getElementById('main-title').innerText = (mod === 'bautismo') ? "Expedientes de Bautismo" : "Expedientes de Confirmación";
       
+      // 1. Primero cambiamos la vista (esto limpia los botones)
       cambiarPestaña('tab-busqueda');
+      
+      // 2. DESPUÉS pintamos de azul el botón correspondiente
+      document.getElementById('btn-mod-bautismo').classList.toggle('active', mod === 'bautismo');
+      document.getElementById('btn-mod-confirmacion').classList.toggle('active', mod === 'confirmacion');
+      
       realizarPeticionBusqueda("", "");
     }
 
@@ -882,6 +916,8 @@
       document.getElementById('app-screen').classList.remove('d-none');
       const usuarioLogueado = localStorage.getItem('usuarioParroquia') || "ADMIN";
       document.getElementById('nav-user-label').innerText = usuarioLogueado.toUpperCase();
+      cargarSacerdotesSilencioso();
+
       cambiarPestaña('tab-busqueda');
       realizarPeticionBusqueda("", "");
     }
@@ -1038,7 +1074,8 @@
              fechaBau: fechaBauFinal,
              fechaConf: fechaConfFinal, 
              lugarConf: moduloActual === 'confirmacion' ? document.getElementById('det-lugar-conf').innerText : "",
-             notas: document.getElementById('box-notas-margen').value
+             notas: document.getElementById('box-notas-margen').value,
+             sacerdote_activo: document.getElementById('input-sacerdote-activo').value
            },
            usuario: localStorage.getItem('usuarioParroquia')
         };
@@ -1221,7 +1258,6 @@
       renderizarTablaHistorial();
     }
 
-    
     function formatoFechaLarga(fechaStr) {
       if(!fechaStr || fechaStr === "-") return "";
       let p = fechaStr.trim().split("/");
@@ -1330,6 +1366,114 @@
         } else { alert("Error: " + data.message); }
       } catch (e) { alert("Error de conexión al guardar."); } 
       finally { btn.disabled = false; btn.innerHTML = originalHTML; }
+    }
+
+    let modalSacerdotes; // Añade esto junto a tus otras variables globales arriba
+
+    document.addEventListener("DOMContentLoaded", () => {
+      modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
+      sidebarDetalle = new bootstrap.Offcanvas(document.getElementById('panelDetalle'));
+      modalExito = new bootstrap.Modal(document.getElementById('successPdfModal'));
+      
+      // NUEVO MODAL:
+      modalSacerdotes = new bootstrap.Modal(document.getElementById('modalSacerdotes'));
+
+      if (localStorage.getItem('sesionParroquia') === 'activa') {
+        mostrarApp(); 
+      }
+    });
+
+    // ==========================================
+    // FUNCIONES DE GESTIÓN DE SACERDOTES
+    // ==========================================
+    async function abrirModalSacerdotes() {
+      modalSacerdotes.show();
+      await cargarSacerdotesLista();
+    }
+
+    // Carga silenciosa para obtener el sacerdote activo al iniciar sesión
+    async function cargarSacerdotesSilencioso() {
+      try {
+        // Usamos siempre API_BAUTISMO porque la hoja "Sacerdotes" está allí
+        const res = await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'obtener_sacerdotes' }) });
+        const data = await res.json();
+        if (data.success) {
+          data.data.forEach(sac => {
+            if (sac[1] && sac[1].toString().toUpperCase() === 'ACTIVO') {
+              document.getElementById('input-sacerdote-activo').value = sac[0];
+            }
+          });
+        }
+      } catch (e) { console.error("Error cargando sacerdote activo", e); }
+    }
+
+    async function cargarSacerdotesLista() {
+      const lista = document.getElementById('lista-sacerdotes');
+      lista.innerHTML = '<tr><td class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div> Cargando...</td></tr>';
+      
+      try {
+        const res = await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'obtener_sacerdotes' }) });
+        const data = await res.json();
+        
+        if (data.success) {
+          lista.innerHTML = '';
+          let hayActivo = false;
+          
+          data.data.forEach(sac => {
+            const nombre = sac[0];
+            const estado = sac[1]; 
+            const esActivo = (estado && estado.toString().toUpperCase() === 'ACTIVO');
+            
+            if (esActivo) {
+              document.getElementById('input-sacerdote-activo').value = nombre;
+              hayActivo = true;
+            }
+            
+            lista.innerHTML += `
+              <tr>
+                <td class="fw-semibold text-dark small">${nombre}</td>
+                <td class="text-end" style="width: 100px;">
+                  ${esActivo 
+                    ? '<span class="badge bg-success bg-opacity-10 text-success border border-success p-2 w-100">ACTIVO</span>' 
+                    : `<button class="btn btn-sm btn-outline-primary rounded-pill fw-bold w-100" onclick="activarSacerdote('${nombre}')">Activar</button>`}
+                </td>
+              </tr>
+            `;
+          });
+          
+          if (!hayActivo) document.getElementById('input-sacerdote-activo').value = "";
+        }
+      } catch (e) {
+        lista.innerHTML = '<tr><td class="text-danger text-center py-3">Error de conexión.</td></tr>';
+      }
+    }
+
+    async function agregarSacerdote() {
+      const input = document.getElementById('nuevo-sacerdote');
+      const nombre = input.value.trim();
+      if (!nombre) return;
+      
+      const btn = document.getElementById('btn-add-sac');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div>';
+      
+      try {
+        await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'agregar_sacerdote', nombre: nombre }) });
+        input.value = '';
+        await cargarSacerdotesLista(); // Recargar lista
+      } catch(e) { alert('Error al agregar sacerdote'); } 
+      finally { btn.disabled = false; btn.innerHTML = 'Agregar'; }
+    }
+
+    async function activarSacerdote(nombre) {
+      const lista = document.getElementById('lista-sacerdotes');
+      lista.innerHTML = '<tr><td class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div> Actualizando...</td></tr>';
+      try {
+        await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'activar_sacerdote', nombre: nombre }) });
+        await cargarSacerdotesLista(); // Recargar lista visual
+        // Cargar silencioso para asegurar el input oculto en memoria
+        await cargarSacerdotesSilencioso(); 
+      } catch(e) { alert('Error al activar sacerdote'); await cargarSacerdotesLista(); }
     }
   </script>
 </body>
