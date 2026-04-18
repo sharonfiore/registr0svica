@@ -751,7 +751,6 @@
 
     let API_URL = API_BAUTISMO;
     let moduloActual = 'bautismo';
-    let mod = 'bautismo';
     let datosActuales = [];
     let paginaActual = 1;
     const filasPorPagina = 10;
@@ -916,9 +915,7 @@
       const usuarioLogueado = localStorage.getItem('usuarioParroquia') || "ADMIN";
       document.getElementById('nav-user-label').innerText = usuarioLogueado.toUpperCase();
       cargarSacerdotesSilencioso();
-
-      cambiarPestaña('tab-busqueda');
-      realizarPeticionBusqueda("", "");
+      setModulo('bautismo');
     }
 
     function cerrarSesion() { 
