@@ -16,6 +16,8 @@
       --surface: #ffffff;
       --text-main: #1a1c21;
       --text-muted: #5e6673;
+      --sidebar-width: 260px;
+      --sidebar-collapsed-width: 72px;
     }
 
     body { 
@@ -28,12 +30,113 @@
 
     /* Navegación Lateral Estilo Moderno */
     .sidebar {
-      width: 260px;
+      width: var(--sidebar-width);
       background: var(--surface);
       border-right: 1px solid rgba(0,0,0,0.05);
       display: flex;
       flex-direction: column;
       padding: 2rem 1.5rem;
+      transition: width 0.3s ease;
+      position: relative;
+    }
+
+    /* Sidebar colapsado */
+    .sidebar.collapsed {
+      width: var(--sidebar-collapsed-width);
+      padding: 2rem 0.5rem;
+    }
+
+    .sidebar.collapsed .sidebar-text,
+    .sidebar.collapsed .sidebar-user-text,
+    .sidebar.collapsed .sidebar-title small,
+    .sidebar.collapsed .nav-pill-custom span:not(.icon-only),
+    .sidebar.collapsed .mt-auto .d-flex span,
+    .sidebar.collapsed .border-top .d-flex span,
+    .sidebar.collapsed .sidebar-title h4 span {
+      display: none;
+    }
+
+    .sidebar.collapsed .nav-pill-custom {
+      text-align: center;
+      padding: 0.8rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .sidebar.collapsed .nav-pill-custom i {
+      margin-right: 0 !important;
+      font-size: 1.2rem;
+    }
+
+    .sidebar.collapsed .mt-auto .d-flex {
+      justify-content: center;
+    }
+
+    .sidebar.collapsed .mt-auto .rounded-circle {
+      margin-right: 0 !important;
+    }
+
+    .sidebar.collapsed .btn-outline-danger {
+      font-size: 0;
+      padding: 0.5rem;
+    }
+
+    .sidebar.collapsed .btn-outline-danger i {
+      font-size: 1rem;
+      margin-right: 0;
+    }
+
+    .sidebar.collapsed .btn-outline-danger span {
+      display: none;
+    }
+
+    /* Botón minimizar */
+    .sidebar-toggle-btn {
+      position: absolute;
+      right: -12px;
+      top: 30px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: white;
+      border: 1px solid rgba(0,0,0,0.1);
+      color: var(--brand-navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 10;
+      font-size: 12px;
+    }
+
+    .sidebar-toggle-btn:hover {
+      background: var(--brand-navy);
+      color: white;
+      border-color: var(--brand-navy);
+    }
+
+    .sidebar.collapsed .sidebar-toggle-btn i {
+      transform: rotate(180deg);
+    }
+
+    /* Menú móvil (select) - visible solo en pantallas pequeñas */
+    .mobile-menu-select {
+      display: none;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .mobile-menu-select select {
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      color: var(--text-main);
+      outline: none;
+      width: 100%;
     }
 
     .nav-pill-custom {
@@ -46,6 +149,7 @@
       text-align: left;
       transition: all 0.3s ease;
       margin-bottom: 0.5rem;
+      width: 100%;
     }
 
     .nav-pill-custom.active {
@@ -82,6 +186,7 @@
       gap: 1rem;
       align-items: flex-end;
       margin-bottom: 2rem;
+      flex-wrap: wrap;
     }
 
     .form-control-custom {
@@ -103,7 +208,11 @@
     .table-container {
       background: var(--surface);
       border-radius: 20px;
-      overflow: hidden;
+      overflow-x: auto;
+    }
+
+    .table {
+      min-width: 600px;
     }
 
     .table thead th {
@@ -139,7 +248,7 @@
 
     /* Panel Lateral (Offcanvas) */
     .offcanvas-custom {
-      width: 600px !important;
+      width: 700px !important;
       border-left: none;
       box-shadow: -10px 0 40px rgba(0,0,0,0.1);
       background: #f8fafd;
@@ -148,8 +257,8 @@
     .detail-section {
       background: white;
       border-radius: 16px;
-      padding: 1.5rem;
-      margin-bottom: 1rem;
+      padding: 0.8rem;
+      margin-bottom: 0.8rem;
       border: 1px solid rgba(0,0,0,0.03);
     }
 
@@ -202,22 +311,7 @@
       font-weight: 700;
       width: 100%;
     }
-    /* Busca .offcanvas-custom y cambia el width a 600px */
-    .offcanvas-custom {
-      width: 600px !important; /* Lo hicimos un poco más ancho */
-      border-left: none;
-      box-shadow: -10px 0 40px rgba(0,0,0,0.1);
-      background: #f8fafd;
-    }
-    
-    /* Busca .detail-section y reduce el padding de 1.5rem a 0.8rem */
-    .detail-section {
-      background: white;
-      border-radius: 16px;
-      padding: 0.8rem; /* Reducimos el espacio interno del cuadradito */
-      margin-bottom: 0.8rem; /* Reducimos la separación entre cuadraditos */
-      border: 1px solid rgba(0,0,0,0.03);
-    }
+
     #btn-use-written:hover {
       border-color: #2196f3 !important;
       background-color: #e3f2fd !important;
@@ -252,57 +346,136 @@
       box-shadow: 0 0 0 0.25rem rgba(0, 85, 255, 0.25) !important;
     }
 
-    /* --- AJUSTES RESPONSIVE --- */
 
-    /* 1. Panel lateral flexible para móvil */
-    .offcanvas-custom {
-      width: 600px !important;
+    /* Menú móvil tipo Navbar */
+    .mobile-navbar {
+    display: none;
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
+
+    .mobile-navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    }
+
+    .mobile-navbar-brand i {
+    font-size: 1.5rem;
+    color: var(--brand-navy);
+    }
+
+    .mobile-navbar-brand span {
+    font-weight: 700;
+    color: var(--brand-navy);
+    font-size: 1.1rem;
+    }
+
+    .mobile-menu-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--brand-navy);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    }
+
+    .mobile-menu-btn:hover {
+    background: rgba(0,34,102,0.05);
+    }
+
+    /* Menú desplegable móvil */
+    .mobile-dropdown-menu {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 0.5rem;
+    z-index: 99;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    }
+
+    .mobile-dropdown-menu.show {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+    }
+
+    .mobile-dropdown-menu .nav-pill-custom {
+    margin-bottom: 0.25rem;
+    width: 100%;
+    text-align: left;
+    }
+
+    .mobile-dropdown-menu .border-top {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    }
+
+
+    /* AJUSTES RESPONSIVE */
+    @media (max-width: 992px) {
+    body {
+        overflow-y: auto;
+        height: auto;
+    }
+    
+    /* Ocultar sidebar normal en móvil */
+    .sidebar {
+        display: none !important;
+    }
+    
+    /* Mostrar navbar móvil */
+    .mobile-navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Ajustar el main content para móvil */
+    .main-content {
+        padding: 1rem;
+    }
+    
+    /* Ajustes de tabla en móvil */
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .search-box {
+        flex-direction: column;
+    }
+    
+    .search-box > div,
+    .search-box button {
+        width: 100% !important;
+    }
+    
+    /* Ajustar offcanvas en móvil */
+    .offcanvas-custom {
+        width: 100% !important;
+    }
+    }
+    
     @media (max-width: 600px) {
       .offcanvas-custom {
-        width: 100% !important; /* En móviles ocupa toda la pantalla */
+        width: 100% !important;
       }
     }
-    
-    /* 2. Sidebar adaptable */
-    @media (max-width: 992px) {
-      body {
-        overflow-y: auto; /* Permitir scroll general en móvil */
-        height: auto;
-      }
-      .sidebar {
-        width: 100%;
-        height: auto;
-        padding: 1rem;
-        border-right: none;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .sidebar .mb-5, .sidebar .mt-auto {
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-      }
-      #app-screen {
-        flex-direction: column;
-        position: relative;
-      }
-      .main-content {
-        padding: 1.5rem 1rem;
-      }
-      .nav-pill-custom {
-        margin-bottom: 0;
-        padding: 0.5rem 0.8rem;
-        font-size: 0.85rem;
-      }
-      .sidebar small, #nav-user-label, .sidebar br {
-        display: none; /* Ocultar textos secundarios en menú móvil para ahorrar espacio */
-      }
-    }
-    
-    /* 3. Estilo para la paginación */
+
     .pagination .page-link {
       border: none;
       color: var(--brand-navy);
@@ -326,6 +499,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      text-decoration: none;
     }
     .btn-sheet:hover {
       background-color: #156536;
@@ -355,126 +529,166 @@
     </div>
   </div>
 
-  <!-- ==================== DASHBOARD PRINCIPAL ==================== -->
-  <div id="app-screen" class="d-none d-flex h-100">
+    <!-- ==================== DASHBOARD PRINCIPAL ==================== -->
+  <div id="app-screen" class="d-none" style="display: flex !important; flex-direction: column; height: 100vh;">
     
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="mb-5 px-2">
-        <h4 class="fw-bold text-parroquia"><i class="fas fa-church me-2"></i>SICA</h4>
-        <small class="text-muted fw-semibold">Sistema de Archivo</small>
+    <!-- ===== NUEVO: NAVBAR PARA MÓVIL ===== -->
+    <div class="mobile-navbar">
+      <div class="mobile-navbar-brand">
+        <i class="fas fa-church"></i>
+        <span>SICA</span>
       </div>
-      
-      <button class="nav-pill-custom active" onclick="setModulo('bautismo')" id="btn-mod-bautismo">
+      <button class="mobile-menu-btn" id="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+
+    <!-- Menú desplegable para móvil -->
+    <div class="mobile-dropdown-menu" id="mobile-dropdown-menu">
+      <button class="nav-pill-custom active" onclick="setModulo('bautismo'); closeMobileMenu();" id="mobile-btn-bautismo">
         <i class="fas fa-dove me-2"></i> Bautismos
       </button>
-      <button class="nav-pill-custom" onclick="setModulo('confirmacion')" id="btn-mod-confirmacion">
+      <button class="nav-pill-custom" onclick="setModulo('confirmacion'); closeMobileMenu();" id="mobile-btn-confirmacion">
         <i class="fas fa-fire me-2"></i> Confirmación
       </button>
-
-      <button class="nav-pill-custom" onclick="abrirModalSacerdotes()" id="btn-mod-sacerdotes">
+      <button class="nav-pill-custom" onclick="abrirModalSacerdotes(); closeMobileMenu();" id="mobile-btn-sacerdotes">
         <i class="fas fa-user-tie me-2"></i> Sacerdotes
       </button>
-
-      <div class="mt-4 pt-4 border-top">
-          <button class="nav-pill-custom w-100" onclick="cambiarPestaña('tab-historial'); cargarHistorial()" id="btn-tab-historial">
-            <i class="fas fa-history me-2"></i> Ver Historial
-          </button>
-      </div>
-      
-      <div class="mt-auto pt-4 border-top">
-        <div class="d-flex align-items-center mb-3">
+      <div class="border-top my-2"></div>
+      <button class="nav-pill-custom" onclick="cambiarPestaña('tab-historial'); cargarHistorial(); closeMobileMenu();" id="mobile-btn-historial">
+        <i class="fas fa-history me-2"></i> Ver Historial
+      </button>
+      <div class="border-top my-2"></div>
+      <div class="px-2 py-2">
+        <div class="d-flex align-items-center mb-2">
           <div class="rounded-circle bg-light p-2 me-2">
             <i class="fas fa-user text-muted"></i>
           </div>
-          <span class="small fw-bold" id="nav-user-label">Admin</span>
+          <span class="small fw-bold" id="mobile-user-label">Admin</span>
         </div>
-        <button onclick="cerrarSesion()" class="btn btn-sm btn-outline-danger w-100 rounded-pill">Cerrar Sesión</button>
+        <button onclick="cerrarSesion()" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
+          <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
+        </button>
       </div>
-    </aside>
+    </div>
 
-    <!-- Main -->
-    <main class="main-content">
-      <div id="tab-busqueda" class="vista-app">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fw-bold m-0" id="main-title">Partidas de Bautismo</h2>
-          <!-- BOTÓN DINÁMICO PARA ABRIR EL GSHEET CORRESPONDIENTE -->
-          <a href="#" id="btn-open-gsheet" target="_blank" class="btn-sheet shadow-sm">
-            <i class="fas fa-file-excel"></i> <span class="d-none d-md-inline">Abrir Documento Original</span>
-          </a>
+    <!-- Contenedor flexible para sidebar y contenido -->
+    <div style="display: flex; flex: 1; overflow: hidden;">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="main-sidebar">
+        <div class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()">
+          <i class="fas fa-chevron-left"></i>
         </div>
         
-        <!-- Caja de Búsqueda -->
-        <div class="search-box glass-card">
-          <div class="flex-grow-1">
-            <label class="detail-label">Nombre, Padres o ID del titular</label>
-            <input type="text" id="search-input" class="form-control form-control-custom" placeholder="Ej: Juan Perez o B54-0001">
-          </div>
-          <div style="width: 150px;">
-            <label class="detail-label">Año</label>
-            <input type="number" id="year-filter" class="form-control form-control-custom" placeholder="2020">
-          </div>
-          <button onclick="ejecutarBusqueda()" class="btn btn-primary-custom px-4" style="width: auto;">Buscar</button>
+        <div class="mb-5 px-2 sidebar-title">
+          <h4 class="fw-bold text-parroquia"><i class="fas fa-church me-2"></i><span>SICA</span></h4>
+          <small class="text-muted fw-semibold sidebar-text">Sistema de Archivo</small>
         </div>
-
-        <!-- Tabla -->
-        <div id="loading-indicator" class="text-center py-5 d-none">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-3 fw-semibold text-muted">Consultando archivos...</p>
-        </div>
-
-        <!-- Tabla de Resultados -->
-        <div id="table-container" class="table-container shadow-sm d-none">
-          <table class="table mb-0 table-hover">
-            <thead id="table-head">
-              <!-- La cabecera se genera automáticamente por JavaScript -->
-            </thead>
-            <tbody id="results-body"></tbody>
-          </table>
-        </div>
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 px-3 pb-3">
-          <small class="text-muted fw-semibold mb-2 mb-md-0" id="pagination-info">Mostrando 0 de 0 registros</small>
-          <nav>
-            <ul class="pagination pagination-sm mb-0" id="pagination-controls">
-              <!-- Los botones se generarán con JS -->
-            </ul>
-          </nav>
-        </div>
-      </div>
-
-      <!-- Historial -->
-      <div id="tab-historial" class="vista-app d-none">
-        <h2 class="fw-bold mb-4">Certificados Emitidos</h2>
         
-        <!-- Sub-navegación interna del historial -->
-        <div class="d-flex gap-2 mb-4">
-            <button class="btn btn-sm btn-outline-primary active px-4 rounded-pill fw-bold" id="btn-hist-bau" onclick="setHistorialSource('bautismo')">
-                <i class="fas fa-dove me-1"></i> Historial Bautismos
-            </button>
-            <button class="btn btn-sm btn-outline-primary px-4 rounded-pill fw-bold" id="btn-hist-conf" onclick="setHistorialSource('confirmacion')">
-                <i class="fas fa-fire me-1"></i> Historial Confirmaciones
+        <button class="nav-pill-custom active" onclick="setModulo('bautismo')" id="btn-mod-bautismo">
+          <i class="fas fa-dove me-2"></i><span class="sidebar-text">Bautismos</span>
+        </button>
+        <button class="nav-pill-custom" onclick="setModulo('confirmacion')" id="btn-mod-confirmacion">
+          <i class="fas fa-fire me-2"></i><span class="sidebar-text">Confirmación</span>
+        </button>
+
+        <button class="nav-pill-custom" onclick="abrirModalSacerdotes()" id="btn-mod-sacerdotes">
+          <i class="fas fa-user-tie me-2"></i><span class="sidebar-text">Sacerdotes</span>
+        </button>
+
+        <div class="mt-4 pt-4 border-top">
+            <button class="nav-pill-custom w-100" onclick="cambiarPestaña('tab-historial'); cargarHistorial()" id="btn-tab-historial">
+              <i class="fas fa-history me-2"></i><span class="sidebar-text">Ver Historial</span>
             </button>
         </div>
+        
+        <div class="mt-auto pt-4 border-top">
+          <div class="d-flex align-items-center mb-3">
+            <div class="rounded-circle bg-light p-2 me-2">
+              <i class="fas fa-user text-muted"></i>
+            </div>
+            <span class="small fw-bold sidebar-user-text" id="nav-user-label">Admin</span>
+          </div>
+          <button onclick="cerrarSesion()" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
+            <i class="fas fa-sign-out-alt me-1"></i><span class="sidebar-text">Cerrar Sesión</span>
+          </button>
+        </div>
+      </aside>
 
-        <div class="table-container shadow-sm p-4">
-          <table class="table table-hover">
-            <thead>
-              <tr><th>Fecha</th><th>Titular</th><th>Emitido por</th><th>Documento</th></tr>
-            </thead>
-            <tbody id="historial-body"></tbody>
-          </table>
-          <div id="historial-loading" class="text-center py-4 d-none"><div class="spinner-border text-primary"></div></div>
+      <!-- Main -->
+      <main class="main-content">
+        <div id="tab-busqueda" class="vista-app">
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h2 class="fw-bold m-0" id="main-title">Partidas de Bautismo</h2>
+            <a href="#" id="btn-open-gsheet" target="_blank" class="btn-sheet shadow-sm">
+              <i class="fas fa-file-excel"></i> <span class="d-none d-md-inline">Abrir Documento Original</span>
+            </a>
+          </div>
           
-          <!-- NUEVO: Controles de Paginación para el Historial -->
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 border-top pt-3">
-            <small class="text-muted fw-semibold" id="hist-pagination-info">Mostrando registros</small>
+          <!-- Caja de Búsqueda -->
+          <div class="search-box glass-card">
+            <div class="flex-grow-1">
+              <label class="detail-label">Nombre, Padres o ID del titular</label>
+              <input type="text" id="search-input" class="form-control form-control-custom" placeholder="Ej: Juan Perez o B54-0001">
+            </div>
+            <div style="width: 150px;">
+              <label class="detail-label">Año</label>
+              <input type="number" id="year-filter" class="form-control form-control-custom" placeholder="2020">
+            </div>
+            <button onclick="ejecutarBusqueda()" class="btn btn-primary-custom px-4" style="width: auto;">Buscar</button>
+          </div>
+
+          <!-- Tabla -->
+          <div id="loading-indicator" class="text-center py-5 d-none">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-3 fw-semibold text-muted">Consultando archivos...</p>
+          </div>
+
+          <div id="table-container" class="table-container shadow-sm d-none">
+            <table class="table mb-0 table-hover">
+              <thead id="table-head"></thead>
+              <tbody id="results-body"></tbody>
+            </table>
+          </div>
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 px-3 pb-3">
+            <small class="text-muted fw-semibold mb-2 mb-md-0" id="pagination-info">Mostrando 0 de 0 registros</small>
             <nav>
-              <ul class="pagination pagination-sm mb-0" id="hist-pagination-controls"></ul>
+              <ul class="pagination pagination-sm mb-0" id="pagination-controls"></ul>
             </nav>
           </div>
         </div>
-      </div>
-    </main>
+
+        <div id="tab-historial" class="vista-app d-none">
+          <h2 class="fw-bold mb-4">Certificados Emitidos</h2>
+          
+          <div class="d-flex gap-2 mb-4">
+              <button class="btn btn-sm btn-outline-primary active px-4 rounded-pill fw-bold" id="btn-hist-bau" onclick="setHistorialSource('bautismo')">
+                  <i class="fas fa-dove me-1"></i> Historial Bautismos
+              </button>
+              <button class="btn btn-sm btn-outline-primary px-4 rounded-pill fw-bold" id="btn-hist-conf" onclick="setHistorialSource('confirmacion')">
+                  <i class="fas fa-fire me-1"></i> Historial Confirmaciones
+              </button>
+          </div>
+
+          <div class="table-container shadow-sm p-4">
+            <table class="table table-hover">
+              <thead>
+                <tr><th>Fecha</th><th>Titular</th><th>Emitido por</th><th>Documento</th></tr>
+              </thead>
+              <tbody id="historial-body"></tbody>
+            </table>
+            <div id="historial-loading" class="text-center py-4 d-none"><div class="spinner-border text-primary"></div></div>
+            
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 border-top pt-3">
+              <small class="text-muted fw-semibold" id="hist-pagination-info">Mostrando registros</small>
+              <nav>
+                <ul class="pagination pagination-sm mb-0" id="hist-pagination-controls"></ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 
   <!-- ==================== PANEL LATERAL (OFFCANVAS) ==================== -->
@@ -483,10 +697,8 @@
       <h5 class="offcanvas-title fw-bold text-parroquia" id="mod-head-nombre">Registros</h5>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
-    <!-- Cambiamos p-4 por p-3 en el body del panel para ganar espacio en los bordes -->
     <div class="offcanvas-body p-3">
   
-      <!-- 1. Cifras: Libro, Foja, Partida -->
       <div class="d-flex gap-2 mb-2">
         <div class="detail-section flex-grow-1 text-center py-1">
           <div class="detail-label">Libro</div>
@@ -502,7 +714,6 @@
         </div>
       </div>
     
-      <!-- 2. Nombres y Apellidos Separados -->
       <div class="row g-2 mb-2">
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
@@ -518,7 +729,6 @@
         </div>
       </div>
     
-      <!-- 3. Padres (CORREGIDO con editable-field) -->
       <div class="row g-2 mb-2">
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
@@ -534,51 +744,46 @@
         </div>
       </div>
     
-      <!-- 4. Nacimiento -->
       <div class="detail-section mb-2">
         <div class="detail-label">Lugar de Nacimiento:</div>
         <div class="detail-value small editable-field" id="det-lugar-nac"></div>
         <div class="small text-muted border-top mt-1 pt-1" style="font-size: 0.75rem;">
-           F. Numérica: <span class="editable-field text-dark fw-medium" id="det-fecha-nac"></span>
+           Fecha Numérica: <span class="editable-field text-dark fw-medium" id="det-fecha-nac"></span>
         </div>
         <div class="small text-muted fst-italic" style="font-size: 0.75rem;">
-           F. Escrita: <span class="editable-field text-dark fw-medium" id="det-fecha-nac-literal"></span>
+           Fecha Escrita: <span class="editable-field text-dark fw-medium" id="det-fecha-nac-literal"></span>
         </div>
       </div>
     
-      <!-- 5. Bautismo -->
       <div class="detail-section mb-2" style="background: #e9effd; border-color: var(--brand-accent)">
         <div class="detail-label text-accent">Datos del Bautismo</div>
         <div class="detail-value small editable-field" id="det-lugar-bau"></div>
         <div class="small fw-bold text-primary border-top border-primary-subtle mt-1 pt-1" style="font-size: 0.75rem;">
-           F. Numérica: <span class="editable-field" id="det-fecha-bau"></span>
+           Fecha Numérica: <span class="editable-field" id="det-fecha-bau"></span>
         </div>
         <div class="small text-primary fst-italic" style="font-size: 0.75rem;">
-           F. Escrita: <span class="editable-field" id="det-fecha-bau-literal"></span>
+           Fecha Escrita: <span class="editable-field" id="det-fecha-bau-literal"></span>
         </div>
       </div>
     
-      <!-- 6. SECCIÓN DINÁMICA: Confirmación (Se muestra solo en ese módulo) -->
       <div id="section-confirmacion-panel" class="d-none">
         <div class="detail-section mb-2" style="background: #fff4e5; border-color: #ff9800">
           <div class="detail-label text-warning text-dark">Datos de la Confirmación</div>
           <div class="detail-value small editable-field" id="det-lugar-conf"></div>
           <div class="small fw-bold text-dark border-top border-warning-subtle mt-1 pt-1" style="font-size: 0.75rem;">
-             F. Numérica: <span class="editable-field" id="det-fecha-conf"></span>
+             Fecha Numérica: <span class="editable-field" id="det-fecha-conf"></span>
           </div>
           <div class="small text-muted fst-italic" style="font-size: 0.75rem;">
-             F. Escrita: <span class="editable-field text-dark fw-medium" id="det-fecha-conf-literal"></span>
+             Fecha Escrita: <span class="editable-field text-dark fw-medium" id="det-fecha-conf-literal"></span>
           </div>
         </div>
       </div>
     
-      <!-- 7. Ministro del Sacramento (Común a ambos) -->
       <div class="detail-section mb-2">
         <div class="detail-label">Ministro del Sacramento</div>
         <div class="detail-value small editable-field" id="det-ministro"></div>
       </div>
     
-      <!-- 8. Padrinos -->
       <div class="row g-2 mb-2">
         <div class="col-6">
           <div class="detail-section h-100 mb-0">
@@ -594,7 +799,6 @@
         </div>
       </div>
     
-      <!-- 9. Notas y Anotaciones -->
       <div class="detail-section mb-2">
         <div class="detail-label">Notas Marginales</div>
         <textarea id="box-notas-margen" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2" readonly></textarea>
@@ -609,7 +813,6 @@
         <i class="fas fa-print me-2"></i> Generar Certificado
       </button>
     
-      <!-- Botones de Edición -->
       <div class="mt-3 border-top pt-3">
         <button class="btn btn-outline-secondary w-100 mb-2 fw-bold" onclick="habilitarEdicion()" id="btn-edit-record">
           <i class="fas fa-edit me-2"></i> Habilitar Edición
@@ -624,7 +827,7 @@
     </div>   
   </div>
 
-  <!-- ==================== MODAL DE ÉXITO PDF ==================== -->
+  <!-- MODALES -->
   <div class="modal fade" id="successPdfModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content modal-success-pdf p-4 text-center border-0 shadow-lg">
@@ -645,11 +848,9 @@
     </div>
   </div>
 
-   <!-- MODAL DE CONFLICTO (FECHAS) -->
   <div class="modal fade" id="conflictModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 28px; overflow: hidden;">
-        <!-- Cabecera con color suave en vez del circulo amarillo solo -->
         <div class="p-4 text-center" style="background-color: #fef9e7;">
           <div class="rounded-circle bg-warning d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;">
             <i class="fas fa-question text-white fa-2x"></i>
@@ -660,7 +861,6 @@
   
         <div class="modal-body p-4">
           <div class="d-grid gap-3">
-            <!-- Opción 1: Lo que se escribió a mano -->
             <button class="btn py-3 px-4 text-start d-flex align-items-center justify-content-between shadow-sm" 
                     id="btn-use-written" 
                     style="border-radius: 18px; border: 2px solid #e3f2fd; background-color: #f0f7ff; transition: all 0.2s;">
@@ -673,7 +873,6 @@
               </div>
             </button>
   
-            <!-- Opción 2: La fecha del sistema convertida -->
             <button class="btn py-3 px-4 text-start d-flex align-items-center justify-content-between shadow-sm" 
                     id="btn-use-numeric" 
                     style="border-radius: 18px; border: 2px solid #e8f5e9; background-color: #f1fcf2; transition: all 0.2s;">
@@ -697,7 +896,6 @@
     </div>
   </div>
   
-  <!-- MODAL DE ÉXITO ACTUALIZACIÓN (NUEVO) -->
   <div class="modal fade" id="updateSuccessModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content p-4 text-center border-0 shadow-lg" style="border-radius: 24px;">
@@ -713,10 +911,8 @@
     </div>
   </div>
 
-  <!-- INPUT OCULTO PARA EL SACERDOTE ACTIVO -->
   <input type="hidden" id="input-sacerdote-activo" value="">
 
-  <!-- MODAL DE GESTIÓN DE SACERDOTES -->
   <div class="modal fade" id="modalSacerdotes" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
@@ -731,9 +927,7 @@
           </div>
           <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
             <table class="table table-hover align-middle mb-0">
-              <tbody id="lista-sacerdotes">
-                <!-- Se llena por JavaScript -->
-              </tbody>
+              <tbody id="lista-sacerdotes"></tbody>
             </table>
           </div>
         </div>
@@ -743,7 +937,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // DEFINE AQUÍ LAS DOS URL DE TUS APPSCRIPT
     const API_BAUTISMO = "https://script.google.com/macros/s/AKfycbyiFao36Cgrfe7IHyevzx81euc_yK17-6BAjxIP1XJ7cIEZ0U_3lcM4Zfx2xB9aPqNrUA/exec"; 
     const API_CONFIRMACION = "https://script.google.com/macros/s/AKfycbyLw_K3TYBvsSPrlQFG2HdH9pJWgcO9zmSNggyPOjvNvh2Jb_izrCZ3DzXgTvFFBv1C/exec"; 
     const SHEET_BAUTISMO = "https://docs.google.com/spreadsheets/d/1KQBNB5D7y47LohUwpOIOYOWUQ3YUlUVnCSnhiH1u8-Y/edit";
@@ -760,46 +953,124 @@
     let modalExito;
     let registroSeleccionado = null; 
     
-    // 2. Función para cambiar de Módulo (Corregida para el Botón de Sheet)
-    function setModulo(mod) {
-      moduloActual = mod;
-      API_URL = (mod === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
+    let fuenteHistorialActual = 'bautismo';
+    let paginaHistorialActual = 1;
+    const filasPorPaginaHistorial = 20;
+    let datosHistorialCrudos = [];
+
+    let modalSacerdotes;
+
+    // Función para colapsar/expandir sidebar
+    function toggleSidebar() {
+      const sidebar = document.getElementById('main-sidebar');
+      sidebar.classList.toggle('collapsed');
       
-      // Actualizar link del botón de Google Sheets
-      document.getElementById('btn-open-gsheet').href = (mod === 'bautismo') ? SHEET_BAUTISMO : SHEET_CONFIRMACION;
-      
-      document.getElementById('search-input').value = "";
-      document.getElementById('year-filter').value = "";
-      document.getElementById('main-title').innerText = (mod === 'bautismo') ? "Registros de Bautismo" : "Registros de Confirmación";
-      
-      // 1. Primero cambiamos la vista (esto limpia los botones)
-      cambiarPestaña('tab-busqueda');
-      
-      // 2. DESPUÉS pintamos de azul el botón correspondiente
-      document.getElementById('btn-mod-bautismo').classList.toggle('active', mod === 'bautismo');
-      document.getElementById('btn-mod-confirmacion').classList.toggle('active', mod === 'confirmacion');
-      
-      realizarPeticionBusqueda("", "");
+      // Guardar estado en localStorage
+      const isCollapsed = sidebar.classList.contains('collapsed');
+      localStorage.setItem('sidebarCollapsed', isCollapsed);
+    }
+    // Funciones para el menú móvil
+    function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-dropdown-menu');
+    menu.classList.toggle('show');
+    
+    // Cambiar ícono del botón
+    const btnIcon = document.querySelector('#mobile-menu-toggle i');
+    if (menu.classList.contains('show')) {
+        btnIcon.classList.remove('fa-bars');
+        btnIcon.classList.add('fa-times');
+    } else {
+        btnIcon.classList.remove('fa-times');
+        btnIcon.classList.add('fa-bars');
+    }
     }
 
-    // 3. Función mostrarResultados (Corregida para añadir columna Catequesis)
+    function closeMobileMenu() {
+    const menu = document.getElementById('mobile-dropdown-menu');
+    menu.classList.remove('show');
+    const btnIcon = document.querySelector('#mobile-menu-toggle i');
+    btnIcon.classList.remove('fa-times');
+    btnIcon.classList.add('fa-bars');
+    }
+
+    // Cerrar menú al hacer clic fuera (opcional, pero mejora UX)
+    document.addEventListener('click', function(event) {
+    const menu = document.getElementById('mobile-dropdown-menu');
+    const toggleBtn = document.getElementById('mobile-menu-toggle');
+    
+    if (menu && menu.classList.contains('show')) {
+        if (!menu.contains(event.target) && !toggleBtn.contains(event.target)) {
+        closeMobileMenu();
+        }
+    }
+    });
+
+    // Función para manejar el menú móvil
+    function handleMobileMenuChange(value) {
+      switch(value) {
+        case 'bautismo':
+          setModulo('bautismo');
+          break;
+        case 'confirmacion':
+          setModulo('confirmacion');
+          break;
+        case 'sacerdotes':
+          abrirModalSacerdotes();
+          // Resetear el select después de abrir modal
+          setTimeout(() => {
+            const select = document.getElementById('mobile-menu-select');
+            if (select) select.value = moduloActual === 'bautismo' ? 'bautismo' : 'confirmacion';
+          }, 100);
+          break;
+        case 'historial':
+          cambiarPestaña('tab-historial');
+          cargarHistorial();
+          break;
+        case 'cerrar':
+          cerrarSesion();
+          break;
+      }
+    }
+
+    function setModulo(mod) {
+    moduloActual = mod;
+    API_URL = (mod === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
+    
+    document.getElementById('btn-open-gsheet').href = (mod === 'bautismo') ? SHEET_BAUTISMO : SHEET_CONFIRMACION;
+    
+    document.getElementById('search-input').value = "";
+    document.getElementById('year-filter').value = "";
+    document.getElementById('main-title').innerText = (mod === 'bautismo') ? "Registros de Bautismo" : "Registros de Confirmación";
+    
+    cambiarPestaña('tab-busqueda');
+    
+    // Actualizar sidebar normal
+    document.getElementById('btn-mod-bautismo').classList.toggle('active', mod === 'bautismo');
+    document.getElementById('btn-mod-confirmacion').classList.toggle('active', mod === 'confirmacion');
+    
+    // AÑADE ESTAS LÍNEAS para actualizar el menú móvil
+    document.getElementById('mobile-btn-bautismo').classList.toggle('active', mod === 'bautismo');
+    document.getElementById('mobile-btn-confirmacion').classList.toggle('active', mod === 'confirmacion');
+    
+    realizarPeticionBusqueda("", "");
+    }
+
     function mostrarResultados(res) {
       const thead = document.getElementById('table-head');
       const tbody = document.getElementById('results-body');
       
-      // Generar cabecera dinámica según el módulo
       let headerHTML = `<tr>
         <th>ID</th>
         <th>Libro / Foja / Partida</th>
         <th>Nombre Completo</th>`;
       
       if(moduloActual === 'confirmacion') {
-        headerHTML += `<th>Catequesis</th>`; // Columna solicitada
+        headerHTML += `<th>Catequesis</th>`;
       }
       
       headerHTML += `<th>F. ${moduloActual === 'confirmacion' ? 'Confirma.' : 'Bautizo'}</th>
         <th>Acción</th>
-      </tr>`;
+       </tr>`;
       
       thead.innerHTML = headerHTML;
 
@@ -829,7 +1100,7 @@
             <small class="text-muted" style="font-size: 0.70rem;">
                <i class="fas fa-users me-1 opacity-50"></i> ${(f.padre || "-").toUpperCase()} y ${(f.madre || "-").toUpperCase()}
             </small>
-          </td>`;
+           </td>`;
 
         if(moduloActual === 'confirmacion') {
           rowHTML += `<td class="align-middle small fw-bold text-success">${f.catequesis || "-"}</td>`;
@@ -837,35 +1108,20 @@
 
         rowHTML += `<td class="text-muted small align-middle">${f.fecha_confirmacion || f.fecha_bautizo || "-"}</td>
           <td class="align-middle"><button class="btn btn-action btn-sm" onclick="abrirPanelDetalle(${indiceReal})">Ver</button></td>
-        </tr>`;
+         </tr>`;
         tbody.innerHTML += rowHTML;
       });
 
       renderizarPaginacion();
     }
     
-    document.addEventListener("DOMContentLoaded", () => {
-      modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
-      sidebarDetalle = new bootstrap.Offcanvas(document.getElementById('panelDetalle'));
-      modalExito = new bootstrap.Modal(document.getElementById('successPdfModal'));
-
-      if (localStorage.getItem('sesionParroquia') === 'activa') {
-        mostrarApp(); 
-      }
-    });
-
-    // --- FUNCIÓN QUE TE FALTABA PARA QUE FUNCIONE EL MENÚ ---
     function cambiarPestaña(tabId) {
-        // Ocultar todas las secciones
         document.querySelectorAll('.vista-app').forEach(el => el.classList.add('d-none'));
-        // Quitar estado activo a todos los botones
         document.querySelectorAll('.nav-pill-custom').forEach(el => el.classList.remove('active'));
         
-        // Mostrar la sección seleccionada
         const targetTab = document.getElementById(tabId);
         if (targetTab) targetTab.classList.remove('d-none');
         
-        // Activar el botón correspondiente
         const btnId = "btn-" + tabId;
         const targetBtn = document.getElementById(btnId);
         if (targetBtn) targetBtn.classList.add('active');
@@ -888,7 +1144,7 @@
       try {
         const res = await fetch(API_URL, { 
           method: 'POST', 
-          mode: 'cors', // Asegurar modo cors
+          mode: 'cors',
           body: JSON.stringify({ accion: 'login', usuario: usu, password: pas }) 
         });
         const data = await res.json();
@@ -914,6 +1170,17 @@
       document.getElementById('app-screen').classList.remove('d-none');
       const usuarioLogueado = localStorage.getItem('usuarioParroquia') || "ADMIN";
       document.getElementById('nav-user-label').innerText = usuarioLogueado.toUpperCase();
+      document.getElementById('mobile-user-label').innerText = usuarioLogueado.toUpperCase();
+      
+      // Restaurar estado del sidebar
+      const sidebar = document.getElementById('main-sidebar');
+      const savedState = localStorage.getItem('sidebarCollapsed');
+      if (savedState === 'true') {
+        sidebar.classList.add('collapsed');
+      } else {
+        sidebar.classList.remove('collapsed');
+      }
+      
       cargarSacerdotesSilencioso();
       setModulo('bautismo');
     }
@@ -934,30 +1201,19 @@
       document.getElementById('loading-indicator').classList.add('d-none');
     }
 
-    // --- FUNCIÓN PARA RECOGER LOS DATOS DEL BUSCADOR ---
     function ejecutarBusqueda() {
       const termino = document.getElementById('search-input').value.trim();
       const anio = document.getElementById('year-filter').value.trim();
-      
-      // Si el usuario está en la pestaña historial y busca algo, 
-      // lo regresamos a la pestaña de búsqueda automáticamente
       cambiarPestaña('tab-busqueda');
-      
       realizarPeticionBusqueda(termino, anio);
     }
 
-    // ESTO HACE QUE EL "ENTER" FUNCIONE:
-      document.getElementById('search-input').addEventListener('keypress', (e) => { 
-        if (e.key === 'Enter') ejecutarBusqueda(); 
-      });
-      document.getElementById('year-filter').addEventListener('keypress', (e) => { 
-        if (e.key === 'Enter') ejecutarBusqueda(); 
-      });
-
-      if (localStorage.getItem('sesionParroquia') === 'activa') {
-        mostrarApp(); 
-      }
-    function limpiarFiltros() { document.getElementById('search-input').value = ''; document.getElementById('year-filter').value = ''; realizarPeticionBusqueda("", ""); }
+    document.getElementById('search-input').addEventListener('keypress', (e) => { 
+      if (e.key === 'Enter') ejecutarBusqueda(); 
+    });
+    document.getElementById('year-filter').addEventListener('keypress', (e) => { 
+      if (e.key === 'Enter') ejecutarBusqueda(); 
+    });
 
     function renderizarPaginacion() {
       const totalPaginas = Math.ceil(datosActuales.length / filasPorPagina);
@@ -969,19 +1225,16 @@
 
       if (totalPaginas <= 1) return;
 
-      // Botón Anterior
       container.innerHTML += `<li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
         <a class="page-link" href="javascript:void(0)" onclick="cambiarPagina(${paginaActual - 1})"><i class="fas fa-chevron-left"></i></a>
       </li>`;
 
-      // Números de página
       for (let i = 1; i <= totalPaginas; i++) {
         container.innerHTML += `<li class="page-item ${paginaActual === i ? 'active' : ''}">
           <a class="page-link" href="javascript:void(0)" onclick="cambiarPagina(${i})">${i}</a>
         </li>`;
       }
 
-      // Botón Siguiente
       container.innerHTML += `<li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
         <a class="page-link" href="javascript:void(0)" onclick="cambiarPagina(${paginaActual + 1})"><i class="fas fa-chevron-right"></i></a>
       </li>`;
@@ -989,8 +1242,8 @@
 
     function cambiarPagina(p) {
       paginaActual = p;
-      mostrarResultados(); // Volver a dibujar la tabla (sin pedir datos al server)
-      document.querySelector('.main-content').scrollTop = 0; // Subir al inicio de la tabla
+      mostrarResultados();
+      document.querySelector('.main-content').scrollTop = 0;
     }
 
     function abrirPanelDetalle(idx) {
@@ -1015,18 +1268,14 @@
       
       if (moduloActual === 'confirmacion') {
         panelConfi.classList.remove('d-none');
-        // Datos de la Confirmación
         document.getElementById('det-lugar-conf').innerText = d.lugar_confirmacion || "";
         document.getElementById('det-fecha-conf').innerText = d.fecha_confirmacion || "";
         document.getElementById('det-fecha-conf-literal').innerText = d.fecha_confirmacion_escrita || "";
-
-        // CORRECCIÓN: Datos del Bautismo dentro de la ficha de Confirmación
         document.getElementById('det-lugar-bau').innerText = d.lugar_bautismo || "";
         document.getElementById('det-fecha-bau').innerText = d.fecha_bau_original || "";
         document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bau_escrito_original || "";
       } else {
         panelConfi.classList.add('d-none');
-        // Datos del Bautismo normal
         document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
         document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
         document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
@@ -1052,8 +1301,7 @@
         const pckg = { 
            accion: 'generar_partida', 
            datos: { 
-             id: registroSeleccionado.id, // El ID no cambia
-             // TOMAMOS TODO LO DEMÁS DE LA PANTALLA ACTUAL
+             id: registroSeleccionado.id,
              nro_libro: document.getElementById('det-libro').innerText.trim(),
              foja: document.getElementById('det-foja').innerText.trim(),
              numero: document.getElementById('det-num').innerText.trim(),
@@ -1095,8 +1343,6 @@
     }
 
     async function validarFechasYGenerar() {
-      // CAPTURAMOS LOS VALORES ACTUALES DIRECTAMENTE DE LA PANTALLA
-      // Esto asegura que si acabas de editar, el sistema vea los cambios
       const d = {
         fecha_nacimiento: document.getElementById('det-fecha-nac').innerText,
         fecha_nac_escrito: document.getElementById('det-fecha-nac-literal').innerText,
@@ -1104,7 +1350,6 @@
         fecha_bautizo_escrito: document.getElementById('det-fecha-bau-literal').innerText
       };
 
-      // Si estamos en confirmación, capturamos también sus fechas
       let fConfNum = "";
       let fConfEsc = "";
       if (moduloActual === 'confirmacion') {
@@ -1122,7 +1367,6 @@
         let numLarga = formatoFechaLarga(numLimpia);
         
         let resultado = "";
-        // Escenario A: AMBOS LLENOS (Conflicto) - Ahora sí lo detectará porque numLimpia y escLimpia vienen de la pantalla
         if (numLimpia !== "" && escLimpia !== "") {
           let eleccion = await pedirEleccionFecha(tipo, escLimpia, numLarga);
           if (eleccion === 'cancelar') return null; 
@@ -1135,17 +1379,14 @@
         return resultado.toUpperCase();
       }
     
-      // 1. Procesar Nacimiento
       fechaNacFinal = await procesarEscenarios("NACIMIENTO", d.fecha_nacimiento, d.fecha_nac_escrito);
       if (fechaNacFinal === null) return; 
     
       await new Promise(r => setTimeout(r, 400));
     
-      // 2. Procesar Bautismo
       fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo, d.fecha_bautizo_escrito);
       if (fechaBauFinal === null) return; 
 
-      // 3. Procesar Confirmación
       if (moduloActual === 'confirmacion') {
         await new Promise(r => setTimeout(r, 400));
         fechaConfFinal = await procesarEscenarios("CONFIRMACIÓN", fConfNum, fConfEsc);
@@ -1155,16 +1396,10 @@
       enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal, fechaConfFinal);
     }
 
-    let fuenteHistorialActual = 'bautismo';
-
-    let paginaHistorialActual = 1;
-    const filasPorPaginaHistorial = 20; // 20 registros como solicitaste
-    let datosHistorialCrudos = []; // Para guardar el total sin volver a llamar a la API
-
     function setHistorialSource(source) {
       fuenteHistorialActual = source;
-      paginaHistorialActual = 1; // Reiniciar página
-      datosHistorialCrudos = []; // Limpiar cache
+      paginaHistorialActual = 1;
+      datosHistorialCrudos = [];
       
       document.getElementById('btn-hist-bau').classList.toggle('active', source === 'bautismo');
       document.getElementById('btn-hist-conf').classList.toggle('active', source === 'confirmacion');
@@ -1176,7 +1411,6 @@
       const cont = document.getElementById("historial-body");
       const loading = document.getElementById("historial-loading");
       
-      // Si no hay datos cargados, los traemos de la API
       if (datosHistorialCrudos.length === 0) {
         cont.innerHTML = "";
         loading.classList.remove('d-none');
@@ -1216,7 +1450,7 @@
           <td class="fw-bold">${(g.nombreCompleto || "").toUpperCase()}</td>
           <td><span class="badge bg-light text-dark border">${g.usuario}</span></td>
           <td><a href="${g.link}" target="_blank" class="btn btn-sm btn-outline-primary py-0 fw-bold">Ver PDF</a></td>
-        </tr>`;
+         </tr>`;
       });
 
       renderizarPaginacionHistorial();
@@ -1258,7 +1492,6 @@
       if(!fechaStr || fechaStr === "-") return "";
       let p = fechaStr.trim().split("/");
       if(p.length === 3) {
-        // Meses en mayúsculas
         const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
         let dia = parseInt(p[0], 10);
         let mes = meses[parseInt(p[1], 10) - 1];
@@ -1269,7 +1502,6 @@
     
     function pedirEleccionFecha(tipo, escrita, numericaLarga) {
       return new Promise((resolve) => {
-        // Texto más amigable para la señora
         document.getElementById('conflict-instruction').innerHTML = 
           `Se encontraron dos formas de escribir la fecha de <b>${tipo}</b>. <br> ¿Cuál de estas dos quiere que se imprima?`;
         
@@ -1289,14 +1521,9 @@
       document.getElementById('btn-edit-record').classList.add('d-none');
       document.getElementById('edit-controls').classList.remove('d-none');
       
-      // Hacer contenteditable todos los campos con la clase
       document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'true'));
-      
-      // NUEVO: Quitar readonly a las cajas de texto para poder escribir
       document.getElementById('box-notas-margen').removeAttribute('readonly');
       document.getElementById('box-anotaciones').removeAttribute('readonly');
-
-      // NUEVO: Deshabilitar el botón de Generar Certificado durante la edición
       document.getElementById('btn-generate-pdf').disabled = true;
     }
 
@@ -1306,12 +1533,8 @@
       document.getElementById('edit-controls').classList.add('d-none');
       
       document.querySelectorAll('.editable-field').forEach(el => el.removeAttribute('contenteditable'));
-      
-      // NUEVO: Volver a bloquear las cajas de texto
       document.getElementById('box-notas-margen').setAttribute('readonly', 'true');
       document.getElementById('box-anotaciones').setAttribute('readonly', 'true');
-
-      // NUEVO: Volver a habilitar el botón de Generar Certificado
       document.getElementById('btn-generate-pdf').disabled = false;
     }
 
@@ -1339,12 +1562,10 @@
         ministro: document.getElementById('det-ministro').innerText.trim(),
         padrino: document.getElementById('det-padrino').innerText.trim(),
         madrina: document.getElementById('det-madrina').innerText.trim(),
-        ministro: document.getElementById('det-ministro').innerText.trim(), // <--- Guardar Ministro
         nota_marginal: document.getElementById('box-notas-margen').value,
         anotaciones: document.getElementById('box-anotaciones').value
       };
     
-      // Si es confirmación, añadimos sus campos específicos al objeto de envío
       if (moduloActual === 'confirmacion') {
         datosEditados.lugar_confirmacion = document.getElementById('det-lugar-conf').innerText.trim();
         datosEditados.fecha_confirmacion = document.getElementById('det-fecha-conf').innerText.trim();
@@ -1364,14 +1585,10 @@
       finally { btn.disabled = false; btn.innerHTML = originalHTML; }
     }
 
-    let modalSacerdotes; // Añade esto junto a tus otras variables globales arriba
-
     document.addEventListener("DOMContentLoaded", () => {
       modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
       sidebarDetalle = new bootstrap.Offcanvas(document.getElementById('panelDetalle'));
       modalExito = new bootstrap.Modal(document.getElementById('successPdfModal'));
-      
-      // NUEVO MODAL:
       modalSacerdotes = new bootstrap.Modal(document.getElementById('modalSacerdotes'));
 
       if (localStorage.getItem('sesionParroquia') === 'activa') {
@@ -1379,18 +1596,13 @@
       }
     });
 
-    // ==========================================
-    // FUNCIONES DE GESTIÓN DE SACERDOTES
-    // ==========================================
     async function abrirModalSacerdotes() {
       modalSacerdotes.show();
       await cargarSacerdotesLista();
     }
 
-    // Carga silenciosa para obtener el sacerdote activo al iniciar sesión
     async function cargarSacerdotesSilencioso() {
       try {
-        // Usamos siempre API_BAUTISMO porque la hoja "Sacerdotes" está allí
         const res = await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'obtener_sacerdotes' }) });
         const data = await res.json();
         if (data.success) {
@@ -1432,7 +1644,7 @@
                   ${esActivo 
                     ? '<span class="badge bg-success bg-opacity-10 text-success border border-success p-2 w-100">ACTIVO</span>' 
                     : `<button class="btn btn-sm btn-outline-primary rounded-pill fw-bold w-100" onclick="activarSacerdote('${nombre}')">Activar</button>`}
-                </td>
+                 </td>
               </tr>
             `;
           });
@@ -1456,7 +1668,7 @@
       try {
         await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'agregar_sacerdote', nombre: nombre }) });
         input.value = '';
-        await cargarSacerdotesLista(); // Recargar lista
+        await cargarSacerdotesLista();
       } catch(e) { alert('Error al agregar sacerdote'); } 
       finally { btn.disabled = false; btn.innerHTML = 'Agregar'; }
     }
@@ -1466,13 +1678,10 @@
       lista.innerHTML = '<tr><td class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div> Actualizando...</td></tr>';
       try {
         await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'activar_sacerdote', nombre: nombre }) });
-        await cargarSacerdotesLista(); // Recargar lista visual
-        // Cargar silencioso para asegurar el input oculto en memoria
+        await cargarSacerdotesLista();
         await cargarSacerdotesSilencioso(); 
       } catch(e) { alert('Error al activar sacerdote'); await cargarSacerdotesLista(); }
     }
   </script>
 </body>
 </html>
-
-  
