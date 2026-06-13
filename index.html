@@ -1092,8 +1092,18 @@
 
       datosPaginados.forEach((f, i) => {
         const indiceReal = inicio + i;
+        
+        // UX/UI: Creamos un badge sutil y moderno solo si hay un estado escrito en el Sheets
+        let badgeEstado = "";
+        if (f.estado && f.estado.toString().trim() !== "") {
+          badgeEstado = `<span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning-subtle mt-1 d-inline-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">${f.estado.toUpperCase()}</span>`;
+        }
+
         let rowHTML = `<tr>
-          <td class="fw-bold text-primary small align-middle">${f.id}</td>
+          <td class="align-middle">
+            <span class="fw-bold text-primary small d-block">${f.id}</span>
+            ${badgeEstado}
+          </td>
           <td class="align-middle"><span class="badge bg-light text-dark border p-2">L:${f.libro} F:${f.foja} P:${f.numero}</span></td>
           <td class="align-middle">
             <span class="fw-semibold d-block text-dark" style="font-size:0.9rem;">${(f.nombre_completo || "").toUpperCase()}</span>
