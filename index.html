@@ -1566,7 +1566,6 @@
         lugar_nacimiento: document.getElementById('det-lugar-nac').innerText.trim(),
         fecha_nacimiento: document.getElementById('det-fecha-nac').innerText.trim(),
         fecha_nac_escrito: document.getElementById('det-fecha-nac-literal').innerText.trim(),
-        lugar_bautizo: document.getElementById('det-lugar-bau').innerText.trim(),
         fecha_bautizo: document.getElementById('det-fecha-bau').innerText.trim(),
         fecha_bautizo_escrito: document.getElementById('det-fecha-bau-literal').innerText.trim(),
         ministro: document.getElementById('det-ministro').innerText.trim(),
@@ -1575,11 +1574,14 @@
         nota_marginal: document.getElementById('box-notas-margen').value,
         anotaciones: document.getElementById('box-anotaciones').value
       };
-    
+      
       if (moduloActual === 'confirmacion') {
+        datosEditados.lugar_bautismo = document.getElementById('det-lugar-bau').innerText.trim();
         datosEditados.lugar_confirmacion = document.getElementById('det-lugar-conf').innerText.trim();
         datosEditados.fecha_confirmacion = document.getElementById('det-fecha-conf').innerText.trim();
         datosEditados.fecha_confirmacion_escrita = document.getElementById('det-fecha-conf-literal').innerText.trim();
+      } else {
+        datosEditados.lugar_bautizo = document.getElementById('det-lugar-bau').innerText.trim();
       }
     
       try {
