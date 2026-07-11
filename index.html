@@ -1,1711 +1,1550 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Archivo Sacramental Pro</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-    
-    :root {
-      --brand-navy: #002266;
-      --brand-accent: #0055ff;
-      --bg-gradient: linear-gradient(135deg, #f8fafd 0%, #e9effd 100%);
-      --surface: #ffffff;
-      --text-main: #1a1c21;
-      --text-muted: #5e6673;
-      --sidebar-width: 260px;
-      --sidebar-collapsed-width: 72px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParroquiaSys - Gestión de Intenciones de Misa</title>
 
-    body { 
-      font-family: 'Plus Jakarta Sans', sans-serif; 
-      background: var(--bg-gradient); 
-      color: var(--text-main);
-      height: 100vh;
-      overflow: hidden;
-    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    /* Navegación Lateral Estilo Moderno */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--surface);
-      border-right: 1px solid rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: column;
-      padding: 2rem 1.5rem;
-      transition: width 0.3s ease;
-      position: relative;
-    }
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-    /* Sidebar colapsado */
-    .sidebar.collapsed {
-      width: var(--sidebar-collapsed-width);
-      padding: 2rem 0.5rem;
-    }
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-    .sidebar.collapsed .sidebar-text,
-    .sidebar.collapsed .sidebar-user-text,
-    .sidebar.collapsed .sidebar-title small,
-    .sidebar.collapsed .nav-pill-custom span:not(.icon-only),
-    .sidebar.collapsed .mt-auto .d-flex span,
-    .sidebar.collapsed .border-top .d-flex span,
-    .sidebar.collapsed .sidebar-title h4 span {
-      display: none;
-    }
+    <style>
+        :root {
+            --bg-color: #f7f8fc;
+            --primary: #4f46e5;
+            --primary-dark: #3c34c9;
+            --primary-light: #eef0fd;
+            --primary-soft: #e0e2fb;
+            --comunitaria: #2563eb;
+            --comunitaria-light: #eaf1ff;
+            --particular: #ea580c;
+            --particular-light: #fef1e8;
+            --continua: #7c3aed;
+            --continua-light: #f3edfe;
+            --text-main: #14162b;
+            --text-muted: #8083a3;
+            --card-bg: #ffffff;
+            --border-light: #ecedf6;
+            --success: #16a34a;
+            --success-light: #e9f9ee;
+            --danger: #e0245e;
+            --danger-light: #fdeaf0;
+            --warning: #ea580c;
+            --warning-light: #fef1e8;
+            --gray-hover: #f5f6fb;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --shadow-soft: 0 1px 2px rgba(20,22,43,0.04), 0 8px 24px rgba(20,22,43,0.05);
+        }
 
-    .sidebar.collapsed .nav-pill-custom {
-      text-align: center;
-      padding: 0.8rem 0;
-      display: flex;
-      justify-content: center;
-    }
+        * { box-sizing: border-box; }
 
-    .sidebar.collapsed .nav-pill-custom i {
-      margin-right: 0 !important;
-      font-size: 1.2rem;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    .sidebar.collapsed .mt-auto .d-flex {
-      justify-content: center;
-    }
+        /* =========================================
+           TOP NAVBAR
+           ========================================= */
+        .navbar-custom {
+            background-color: var(--card-bg);
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(79,70,229,0.35);
+            flex-shrink: 0;
+        }
+        .navbar-brand-title {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--text-main);
+            line-height: 1.1;
+            letter-spacing: -0.3px;
+        }
+        .navbar-brand-title span { color: var(--primary); }
+        .navbar-brand-sub {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
 
-    .sidebar.collapsed .mt-auto .rounded-circle {
-      margin-right: 0 !important;
-    }
+        .nav-pills-wrap {
+            background: var(--gray-hover);
+            border-radius: 40px;
+            padding: 5px;
+            display: inline-flex;
+            gap: 2px;
+        }
+        .nav-pills .nav-link {
+            color: var(--text-muted);
+            border-radius: 40px;
+            margin: 0;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            padding: 9px 20px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .nav-pills .nav-link:hover { color: var(--text-main); }
+        .nav-pills .nav-link.active {
+            background-color: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 2px 6px rgba(20,22,43,0.08);
+        }
 
-    .sidebar.collapsed .btn-outline-danger {
-      font-size: 0;
-      padding: 0.5rem;
-    }
+        .navbar-status-pill {
+            background: var(--success-light);
+            color: var(--success);
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-status-pill .dot-live {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 3px var(--success-light);
+        }
 
-    .sidebar.collapsed .btn-outline-danger i {
-      font-size: 1rem;
-      margin-right: 0;
-    }
+        /* =========================================
+           BOTONES
+           ========================================= */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 11px 26px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 16px rgba(79,70,229,0.28);
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(79,70,229,0.34);
+            color: white;
+        }
 
-    .sidebar.collapsed .btn-outline-danger span {
-      display: none;
-    }
+        /* =========================================
+           STAT CARDS (estilo dashboard de referencia)
+           ========================================= */
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+            padding: 20px 22px;
+            height: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(20,22,43,0.08); }
+        .stat-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .stat-icon {
+            width: 34px; height: 34px;
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+        }
+        .stat-number { font-size: 2.1rem; font-weight: 800; letter-spacing: -1px; line-height: 1; margin-top: 10px; }
 
-    /* Botón minimizar */
-    .sidebar-toggle-btn {
-      position: absolute;
-      right: -12px;
-      top: 30px;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: white;
-      border: 1px solid rgba(0,0,0,0.1);
-      color: var(--brand-navy);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      z-index: 10;
-      font-size: 12px;
-    }
+        .donut-wrap { position: relative; width: 96px; height: 96px; margin: 0 auto; }
+        .donut-ring {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: conic-gradient(var(--comunitaria) 0deg, var(--comunitaria) var(--seg1, 120deg), var(--particular) var(--seg1, 120deg), var(--particular) var(--seg2, 260deg), var(--continua) var(--seg2, 260deg), var(--continua) 360deg);
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 13px), #000 calc(100% - 13px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 13px), #000 calc(100% - 13px));
+        }
+        .donut-legend { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
+        .donut-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
-    .sidebar-toggle-btn:hover {
-      background: var(--brand-navy);
-      color: white;
-      border-color: var(--brand-navy);
-    }
+        /* =========================================
+           FILTROS
+           ========================================= */
+        .filters-bar {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--border-light);
+            margin-bottom: 24px;
+        }
+        .filter-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .filter-select {
+            border: 1.5px solid var(--border-light);
+            background-color: var(--gray-hover);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-main);
+            transition: all 0.2s;
+            cursor: pointer;
+            width: 100%;
+        }
+        .filter-select:hover { border-color: var(--primary); }
+        .filter-select:focus {
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px var(--primary-light);
+            outline: none;
+        }
 
-    .sidebar.collapsed .sidebar-toggle-btn i {
-      transform: rotate(180deg);
-    }
+        /* =========================================
+           TARJETAS Y FORMULARIOS
+           ========================================= */
+        .card-custom {
+            background: var(--card-bg);
+            border-radius: 26px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--border-light);
+            padding: 34px;
+        }
 
-    /* Menú móvil (select) - visible solo en pantallas pequeñas */
-    .mobile-menu-select {
-      display: none;
-      background: var(--surface);
-      border-radius: 12px;
-      padding: 0.75rem 1rem;
-      margin-bottom: 1rem;
-      border: 1px solid rgba(0,0,0,0.05);
-    }
+        .form-icon-badge {
+            width: 50px; height: 50px;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
 
-    .mobile-menu-select select {
-      border: none;
-      background: transparent;
-      font-weight: 600;
-      color: var(--text-main);
-      outline: none;
-      width: 100%;
-    }
+        .section-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+            padding-left: 12px;
+            border-left: 3px solid var(--primary);
+        }
 
-    .nav-pill-custom {
-      border: none;
-      background: transparent;
-      padding: 0.8rem 1rem;
-      border-radius: 12px;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-align: left;
-      transition: all 0.3s ease;
-      margin-bottom: 0.5rem;
-      width: 100%;
-    }
+        .form-label-custom {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            display: block;
+        }
 
-    .nav-pill-custom.active {
-      background: var(--brand-navy);
-      color: white;
-      box-shadow: 0 4px 12px rgba(0,34,102,0.2);
-    }
+        .form-control-custom, .form-select-custom {
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border-light);
+            padding: 11px 14px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            transition: all 0.2s;
+            background-color: var(--gray-hover);
+            width: 100%;
+        }
+        .form-control-custom:hover, .form-select-custom:hover { border-color: var(--primary); }
+        .form-control-custom:focus, .form-select-custom:focus {
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px var(--primary-light);
+            outline: none;
+        }
 
-    .nav-pill-custom:hover:not(.active) {
-      background: rgba(0,34,102,0.05);
-      color: var(--brand-navy);
-    }
+        .textarea-custom { min-height: 190px; resize: vertical; line-height: 1.6; }
 
-    /* Contenedor Principal */
-    .main-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 2.5rem;
-    }
+        .btn-cancel {
+            background-color: #ffffff;
+            border: 1.5px solid var(--border-light);
+            color: var(--text-muted);
+            font-weight: 700;
+            padding: 11px 24px;
+            border-radius: 40px;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover { background-color: var(--gray-hover); color: var(--text-main); border-color: var(--primary); }
 
-    .glass-card {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
-      border-radius: 24px;
-      border: 1px solid rgba(255,255,255,0.4);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-    }
+        .btn-save {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #ffffff;
+            border: none;
+            font-weight: 700;
+            padding: 11px 28px;
+            border-radius: 40px;
+            transition: all 0.2s;
+            box-shadow: 0 6px 16px rgba(79,70,229,0.28);
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(79,70,229,0.32); color: white; }
 
-    .search-box {
-      background: var(--surface);
-      border-radius: 16px;
-      padding: 1.5rem;
-      display: flex;
-      gap: 1rem;
-      align-items: flex-end;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
+        /* =========================================
+           CALENDARIO
+           ========================================= */
+        .calendar-wrapper {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--border-light);
+        }
+        .fc .fc-toolbar-title { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
+        .fc .fc-button {
+            border-radius: 10px !important;
+            text-transform: capitalize;
+            font-weight: 600;
+            padding: 6px 14px !important;
+            font-size: 0.82rem;
+            background-color: #fff !important;
+            border: 1px solid var(--border-light) !important;
+            color: var(--text-muted) !important;
+        }
+        .fc .fc-button-primary:not(:disabled):hover {
+            background-color: var(--gray-hover) !important;
+            border-color: var(--primary) !important;
+            color: var(--primary) !important;
+        }
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background-color: var(--primary-light) !important;
+            color: var(--primary) !important;
+            font-weight: 700;
+            border-color: var(--primary) !important;
+        }
+        .fc-theme-standard td, .fc-theme-standard th { border-color: var(--border-light); }
+        .fc-theme-standard th {
+            padding: 12px 0;
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: #fafafe;
+        }
+        .fc .fc-daygrid-day-top { flex-direction: row; justify-content: flex-start; padding: 6px 8px; }
+        .fc-daygrid-day-number {
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.83rem;
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 10px;
+        }
+        .fc .fc-day-today .fc-daygrid-day-number { background-color: var(--primary); color: white !important; font-weight: 800; }
+        .fc .fc-daygrid-day.fc-day-today { background-color: var(--primary-light); }
+        .fc-event {
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 4px 8px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 2px 4px;
+        }
+        .event-comunitaria { background-color: var(--comunitaria-light) !important; color: var(--comunitaria) !important; }
+        .event-particular { background-color: var(--particular-light) !important; color: var(--particular) !important; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dot-comunitaria { background-color: var(--comunitaria); }
+        .dot-particular { background-color: var(--particular); }
 
-    .form-control-custom {
-      background: #f1f3f7;
-      border: 2px solid transparent;
-      border-radius: 12px;
-      padding: 0.75rem 1rem;
-      transition: all 0.3s;
-    }
+        /* =========================================
+           PANEL LATERAL "ALERTAS / PRÓXIMAS MISAS"
+           ========================================= */
+        .side-panel-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+            padding: 22px;
+        }
+        .side-panel-title { font-size: 1rem; font-weight: 800; color: var(--text-main); }
+        .badge-counter {
+            background-color: var(--danger-light);
+            color: var(--danger);
+            border-radius: 40px;
+            padding: 4px 13px;
+            font-weight: 800;
+            font-size: 0.78rem;
+        }
 
-    .form-control-custom:focus {
-      background: white;
-      border-color: var(--brand-accent);
-      box-shadow: 0 0 0 4px rgba(0,85,255,0.1);
-      outline: none;
-    }
+        .event-card {
+            background: #fff;
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            border: 1px solid var(--border-light);
+            border-left: 4px solid var(--comunitaria);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .event-card.is-particular { border-left-color: var(--particular); }
+        .event-card:hover {
+            transform: translateX(2px);
+            border-color: var(--primary);
+            box-shadow: 0 6px 16px rgba(20,22,43,0.07);
+        }
+        .event-card-tag {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .event-card-tag.txt-comunitaria { color: var(--comunitaria); }
+        .event-card-tag.txt-particular { color: var(--particular); }
 
-    /* Tabla Estilo Premium */
-    .table-container {
-      background: var(--surface);
-      border-radius: 20px;
-      overflow-x: auto;
-    }
+        /* =========================================
+           MODALES
+           ========================================= */
+        .modal-custom .modal-content { border: none; border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .modal-custom .modal-header { border-bottom: none; padding: 28px 28px 12px 28px; }
+        .modal-custom .modal-body { padding: 8px 28px 28px 28px; }
 
-    .table {
-      min-width: 600px;
-    }
+        /* =========================================
+           DRAG & DROP
+           ========================================= */
+        .mass-header {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            color: var(--primary-dark);
+            padding: 10px 16px;
+            border-radius: 0 12px 12px 0;
+            font-weight: 800;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            font-size: 0.92rem;
+        }
+        .category-wrapper {
+            background: #fff;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .category-header {
+            background: var(--gray-hover);
+            padding: 12px 16px;
+            font-size: 0.83rem;
+            font-weight: 700;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-light);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+        .sortable-list { min-height: 60px; list-style: none; padding: 8px; margin: 0; }
+        .sortable-list:empty::after {
+            content: 'Arrastre intenciones aquí';
+            display: block; text-align: center;
+            color: var(--text-muted); font-size: 0.8rem;
+            padding: 16px 0; font-style: italic;
+        }
+        .intention-item {
+            display: flex; align-items: center;
+            background: white; margin: 4px; padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .intention-item:hover { border-color: var(--border-light); background: var(--gray-hover); }
+        .drag-handle { color: var(--text-muted); cursor: grab; padding-right: 12px; font-size: 1rem; }
+        .drag-handle:active { cursor: grabbing; }
+        .inline-input {
+            flex-grow: 1; border: 1px solid transparent; background: transparent;
+            font-weight: 600; color: var(--text-main); font-family: 'Inter', sans-serif;
+            font-size: 0.9rem; padding: 6px 10px; outline: none;
+            border-radius: 8px; transition: 0.2s;
+        }
+        .inline-input.editing { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .action-btn {
+            background: transparent; border: none; color: var(--text-muted);
+            transition: 0.2s; padding: 6px 10px; border-radius: 8px; font-size: 0.8rem;
+        }
+        .action-btn:hover { background: var(--primary-light); color: var(--primary); }
+        .sortable-ghost { opacity: 0.4; background-color: var(--primary-light); border: 1px dashed var(--primary); }
 
-    .table thead th {
-      background: #f8fafd;
-      padding: 1.2rem;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      border: none;
-    }
+        /* =========================================
+           FRECUENCIAS / CONTINUAS
+           ========================================= */
+        .frecuencia-box {
+            border: 1.5px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center;
+            background: var(--gray-hover);
+            font-size: 0.9rem; font-weight: 600;
+        }
+        .frecuencia-box:hover { border-color: var(--primary); background: var(--primary-light); }
+        .frecuencia-box input[type="radio"] { margin-right: 10px; accent-color: var(--primary); transform: scale(1.1); }
+        .dia-checkbox { display: none; }
+        .dia-label {
+            padding: 8px 16px; background: var(--gray-hover); border-radius: 40px;
+            font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+            cursor: pointer; transition: 0.2s; border: 1px solid var(--border-light);
+        }
+        .dia-checkbox:checked + .dia-label { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
 
-    .table tbody td {
-      padding: 1.2rem;
-      vertical-align: middle;
-      border-bottom: 1px solid #f1f3f7;
-    }
+        /* =========================================
+           LOADER
+           ========================================= */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(247,248,252,0.98); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .spinner {
+            width: 44px; height: 44px;
+            border: 3px solid var(--primary-light);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease; }
 
-    .btn-action {
-      background: #f1f3f7;
-      color: var(--brand-navy);
-      border: none;
-      border-radius: 10px;
-      padding: 0.5rem 1rem;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .btn-action:hover {
-      background: var(--brand-navy);
-      color: white;
-    }
-
-    /* Panel Lateral (Offcanvas) */
-    .offcanvas-custom {
-      width: 700px !important;
-      border-left: none;
-      box-shadow: -10px 0 40px rgba(0,0,0,0.1);
-      background: #f8fafd;
-    }
-
-    .detail-section {
-      background: white;
-      border-radius: 16px;
-      padding: 0.8rem;
-      margin-bottom: 0.8rem;
-      border: 1px solid rgba(0,0,0,0.03);
-    }
-
-    .detail-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .detail-value {
-      font-weight: 600;
-      color: var(--brand-navy);
-      font-size: 1rem;
-    }
-
-    /* Modal de Éxito PDF */
-    .modal-success-pdf {
-      border-radius: 30px;
-      border: none;
-    }
-
-    /* Pantalla de Login Estilo Moderno */
-    #login-screen {
-      background: var(--brand-navy);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-    }
-
-    .login-card {
-      background: white;
-      padding: 3.5rem;
-      border-radius: 32px;
-      width: 100%;
-      max-width: 450px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    }
-
-    .btn-primary-custom {
-      background: var(--brand-navy);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      padding: 1rem;
-      font-weight: 700;
-      width: 100%;
-    }
-
-    #btn-use-written:hover {
-      border-color: #2196f3 !important;
-      background-color: #e3f2fd !important;
-      transform: scale(1.02);
-    }
-    #btn-use-numeric:hover {
-      border-color: #4caf50 !important;
-      background-color: #e8f5e9 !important;
-      transform: scale(1.02);
-    }
-    [contenteditable="true"] {
-      border: 1px dashed #0055ff !important;
-      background-color: #fff9e6 !important;
-      cursor: text;
-    }
-
-    .editing-mode .editable-field {
-      border: 1px solid #ced4da !important;
-      background-color: #ffffff !important;
-      padding: 6px 10px;
-      border-radius: 8px;
-      display: block;
-      width: 100%;
-      min-height: 34px;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-      transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-      cursor: text;
-    }
-    .editing-mode .editable-field:focus {
-      border-color: var(--brand-accent) !important;
-      outline: 0;
-      box-shadow: 0 0 0 0.25rem rgba(0, 85, 255, 0.25) !important;
-    }
-
-
-    /* Menú móvil tipo Navbar */
-    .mobile-navbar {
-    display: none;
-    background: var(--surface);
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-    .mobile-navbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    }
-
-    .mobile-navbar-brand i {
-    font-size: 1.5rem;
-    color: var(--brand-navy);
-    }
-
-    .mobile-navbar-brand span {
-    font-weight: 700;
-    color: var(--brand-navy);
-    font-size: 1.1rem;
-    }
-
-    .mobile-menu-btn {
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--brand-navy);
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 8px;
-    transition: all 0.2s;
-    }
-
-    .mobile-menu-btn:hover {
-    background: rgba(0,34,102,0.05);
-    }
-
-    /* Menú desplegable móvil */
-    .mobile-dropdown-menu {
-    position: fixed;
-    top: 70px;
-    left: 0;
-    right: 0;
-    background: var(--surface);
-    border-radius: 0 0 16px 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    padding: 0.5rem;
-    z-index: 99;
-    transform: translateY(-100%);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    }
-
-    .mobile-dropdown-menu.show {
-    transform: translateY(0);
-    opacity: 1;
-    visibility: visible;
-    }
-
-    .mobile-dropdown-menu .nav-pill-custom {
-    margin-bottom: 0.25rem;
-    width: 100%;
-    text-align: left;
-    }
-
-    .mobile-dropdown-menu .border-top {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    }
-
-
-    /* AJUSTES RESPONSIVE */
-    @media (max-width: 992px) {
-    body {
-        overflow-y: auto;
-        height: auto;
-    }
-    
-    /* Ocultar sidebar normal en móvil */
-    .sidebar {
-        display: none !important;
-    }
-    
-    /* Mostrar navbar móvil */
-    .mobile-navbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    /* Ajustar el main content para móvil */
-    .main-content {
-        padding: 1rem;
-    }
-    
-    /* Ajustes de tabla en móvil */
-    .table-container {
-        overflow-x: auto;
-    }
-    
-    .search-box {
-        flex-direction: column;
-    }
-    
-    .search-box > div,
-    .search-box button {
-        width: 100% !important;
-    }
-    
-    /* Ajustar offcanvas en móvil */
-    .offcanvas-custom {
-        width: 100% !important;
-    }
-    }
-    
-    @media (max-width: 600px) {
-      .offcanvas-custom {
-        width: 100% !important;
-      }
-    }
-
-    .pagination .page-link {
-      border: none;
-      color: var(--brand-navy);
-      border-radius: 8px;
-      margin: 0 3px;
-      font-weight: 600;
-    }
-    .pagination .page-item.active .page-link {
-      background-color: var(--brand-navy);
-      color: white;
-    }
-
-    .btn-sheet {
-      background-color: #1d8548;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 0.75rem 1rem;
-      font-weight: 600;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-    }
-    .btn-sheet:hover {
-      background-color: #156536;
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(29, 133, 72, 0.3);
-    }
-    
-  </style>
+        @media (max-width: 767px) {
+            .stat-number { font-size: 1.6rem; }
+            .card-custom { padding: 22px; }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- ==================== LOGIN ==================== -->
-  <div id="login-screen">
-    <div class="login-card text-center">
-      <div class="mb-4">
-        <i class="fas fa-cross fa-3x mb-3" style="color: var(--brand-navy)"></i>
-        <h2 class="fw-bold">Bienvenido</h2>
-        <p class="text-muted">Acceso al Archivo General</p>
-      </div>
-      <form onsubmit="iniciarSesion(event)">
-        <input type="text" id="username" class="form-control form-control-custom mb-3" placeholder="Usuario" required>
-        <input type="password" id="password" class="form-control form-control-custom mb-4" placeholder="Contraseña" required>
-        <div id="login-error" class="alert alert-danger d-none py-2 small rounded-3">Credenciales incorrectas</div>
-        <button type="submit" id="btn-login" class="btn btn-primary-custom shadow">Ingresar al Sistema</button>
-      </form>
-    </div>
-  </div>
-
-    <!-- ==================== DASHBOARD PRINCIPAL ==================== -->
-  <div id="app-screen" class="d-none" style="display: flex !important; flex-direction: column; height: 100vh;">
-    
-    <!-- ===== NUEVO: NAVBAR PARA MÓVIL ===== -->
-    <div class="mobile-navbar">
-      <div class="mobile-navbar-brand">
-        <i class="fas fa-church"></i>
-        <span>SICA</span>
-      </div>
-      <button class="mobile-menu-btn" id="mobile-menu-toggle" onclick="toggleMobileMenu()">
-        <i class="fas fa-bars"></i>
-      </button>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p class="mt-3 fw-medium" style="color: var(--text-muted); font-size: 0.85rem;">Cargando ParroquiaSys...</p>
     </div>
 
-    <!-- Menú desplegable para móvil -->
-    <div class="mobile-dropdown-menu" id="mobile-dropdown-menu">
-      <button class="nav-pill-custom active" onclick="setModulo('bautismo'); closeMobileMenu();" id="mobile-btn-bautismo">
-        <i class="fas fa-dove me-2"></i> Bautismos
-      </button>
-      <button class="nav-pill-custom" onclick="setModulo('confirmacion'); closeMobileMenu();" id="mobile-btn-confirmacion">
-        <i class="fas fa-fire me-2"></i> Confirmación
-      </button>
-      <button class="nav-pill-custom" onclick="abrirModalSacerdotes(); closeMobileMenu();" id="mobile-btn-sacerdotes">
-        <i class="fas fa-user-tie me-2"></i> Sacerdotes
-      </button>
-      <div class="border-top my-2"></div>
-      <button class="nav-pill-custom" onclick="cambiarPestaña('tab-historial'); cargarHistorial(); closeMobileMenu();" id="mobile-btn-historial">
-        <i class="fas fa-history me-2"></i> Ver Historial
-      </button>
-      <div class="border-top my-2"></div>
-      <div class="px-2 py-2">
-        <div class="d-flex align-items-center mb-2">
-          <div class="rounded-circle bg-light p-2 me-2">
-            <i class="fas fa-user text-muted"></i>
-          </div>
-          <span class="small fw-bold" id="mobile-user-label">Admin</span>
-        </div>
-        <button onclick="cerrarSesion()" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
-          <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
-        </button>
-      </div>
-    </div>
-
-    <!-- Contenedor flexible para sidebar y contenido -->
-    <div style="display: flex; flex: 1; overflow: hidden;">
-      <!-- Sidebar -->
-      <aside class="sidebar" id="main-sidebar">
-        <div class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()">
-          <i class="fas fa-chevron-left"></i>
-        </div>
-        
-        <div class="mb-5 px-2 sidebar-title">
-          <h4 class="fw-bold text-parroquia"><i class="fas fa-church me-2"></i><span>SICA</span></h4>
-          <small class="text-muted fw-semibold sidebar-text">Sistema de Archivo</small>
-        </div>
-        
-        <button class="nav-pill-custom active" onclick="setModulo('bautismo')" id="btn-mod-bautismo">
-          <i class="fas fa-dove me-2"></i><span class="sidebar-text">Bautismos</span>
-        </button>
-        <button class="nav-pill-custom" onclick="setModulo('confirmacion')" id="btn-mod-confirmacion">
-          <i class="fas fa-fire me-2"></i><span class="sidebar-text">Confirmación</span>
-        </button>
-
-        <button class="nav-pill-custom" onclick="abrirModalSacerdotes()" id="btn-mod-sacerdotes">
-          <i class="fas fa-user-tie me-2"></i><span class="sidebar-text">Sacerdotes</span>
-        </button>
-
-        <div class="mt-4 pt-4 border-top">
-            <button class="nav-pill-custom w-100" onclick="cambiarPestaña('tab-historial'); cargarHistorial()" id="btn-tab-historial">
-              <i class="fas fa-history me-2"></i><span class="sidebar-text">Ver Historial</span>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top mb-4">
+        <div class="container-fluid px-lg-5">
+            <div class="d-flex align-items-center gap-3">
+                <div class="brand-mark"><i class="fa-solid fa-church"></i></div>
+                <div>
+                    <div class="navbar-brand-title">Parroquia<span>Sys</span></div>
+                    <div class="navbar-brand-sub">Intenciones de Misa</div>
+                </div>
+            </div>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
+                <i class="fa-solid fa-bars text-dark fs-5"></i>
             </button>
-        </div>
-        
-        <div class="mt-auto pt-4 border-top">
-          <div class="d-flex align-items-center mb-3">
-            <div class="rounded-circle bg-light p-2 me-2">
-              <i class="fas fa-user text-muted"></i>
+            <div class="collapse navbar-collapse" id="navbarContenido">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 nav-pills nav-pills-wrap p-1" role="tablist">
+                    <li class="nav-item"><button class="nav-link active border-0" data-bs-toggle="pill" data-bs-target="#tab-calendar"><i class="fa-regular fa-calendar-days me-2"></i>Dashboard</button></li>
+                    <li class="nav-item"><button class="nav-link border-0" data-bs-toggle="pill" data-bs-target="#tab-comunitaria" id="nav-comunitaria"><i class="fa-solid fa-users me-2"></i>Comunitaria</button></li>
+                    <li class="nav-item"><button class="nav-link border-0" data-bs-toggle="pill" data-bs-target="#tab-particular"><i class="fa-solid fa-user me-2"></i>Particular</button></li>
+                    <li class="nav-item"><button class="nav-link border-0" data-bs-toggle="pill" data-bs-target="#tab-continuas"><i class="fa-solid fa-repeat me-2"></i>Frecuentes</button></li>
+                </ul>
             </div>
-            <span class="small fw-bold sidebar-user-text" id="nav-user-label">Admin</span>
-          </div>
-          <button onclick="cerrarSesion()" class="btn btn-sm btn-outline-danger w-100 rounded-pill">
-            <i class="fas fa-sign-out-alt me-1"></i><span class="sidebar-text">Cerrar Sesión</span>
-          </button>
-        </div>
-      </aside>
-
-      <!-- Main -->
-      <main class="main-content">
-        <div id="tab-busqueda" class="vista-app">
-          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <h2 class="fw-bold m-0" id="main-title">Partidas de Bautismo</h2>
-            <a href="#" id="btn-open-gsheet" target="_blank" class="btn-sheet shadow-sm">
-              <i class="fas fa-file-excel"></i> <span class="d-none d-md-inline">Abrir Documento Original</span>
-            </a>
-          </div>
-          
-          <!-- Caja de Búsqueda -->
-          <div class="search-box glass-card">
-            <div class="flex-grow-1">
-              <label class="detail-label">Nombre, Padres o ID del titular</label>
-              <input type="text" id="search-input" class="form-control form-control-custom" placeholder="Ej: Juan Perez o B54-0001">
+            <div class="d-none d-lg-flex align-items-center">
+                <span class="navbar-status-pill"><span class="dot-live"></span>Sistema activo</span>
             </div>
-            <div style="width: 150px;">
-              <label class="detail-label">Año</label>
-              <input type="number" id="year-filter" class="form-control form-control-custom" placeholder="2020">
+        </div>
+    </nav>
+
+    <div class="container-fluid px-lg-5 pb-5">
+        <div class="tab-content">
+
+            <!-- =========================================
+               TAB: DASHBOARD
+               ========================================= -->
+            <div class="tab-pane fade show active" id="tab-calendar">
+
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <div>
+                        <h3 class="fw-bold mb-0" style="letter-spacing:-0.5px;">Hola 👋</h3>
+                        <p class="text-muted mb-0 small">Este es el resumen de las misas e intenciones</p>
+                    </div>
+                    <button class="btn-primary-custom" onclick="irACrear()">
+                        <i class="fa-solid fa-plus me-2"></i>Nueva Intención
+                    </button>
+                </div>
+
+                <!-- STAT CARDS -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card fade-in">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label">Comunitarias</span>
+                                <span class="stat-icon" style="background:var(--comunitaria-light); color:var(--comunitaria);"><i class="fa-solid fa-users"></i></span>
+                            </div>
+                            <div class="stat-number" id="statComunitarias">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card fade-in">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label">Particulares</span>
+                                <span class="stat-icon" style="background:var(--particular-light); color:var(--particular);"><i class="fa-solid fa-user"></i></span>
+                            </div>
+                            <div class="stat-number" id="statParticulares">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card fade-in">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="stat-label">Continuas</span>
+                                <span class="stat-icon" style="background:var(--continua-light); color:var(--continua);"><i class="fa-solid fa-repeat"></i></span>
+                            </div>
+                            <div class="stat-number" id="statContinuas">0</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card fade-in">
+                            <div class="text-center mb-1">
+                                <span class="stat-label">Distribución</span>
+                            </div>
+                            <div class="donut-wrap my-1">
+                                <div class="donut-ring" id="donutRing"></div>
+                            </div>
+                            <div class="d-flex justify-content-center gap-2 flex-wrap mt-2 donut-legend">
+                                <span><span class="dot" style="background:var(--comunitaria);"></span>Com.</span>
+                                <span><span class="dot" style="background:var(--particular);"></span>Part.</span>
+                                <span><span class="dot" style="background:var(--continua);"></span>Cont.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters-bar">
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-4">
+                            <span class="filter-label"><i class="fa-solid fa-church me-1"></i> Tipo de Misa</span>
+                            <select id="filterTipo" class="filter-select" onchange="refrescarVistasLocales()">
+                                <option value="todos">Mostrar Todas</option>
+                                <option value="Comunitaria">Solo Comunitarias</option>
+                                <option value="Particular">Solo Particulares</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="filter-label"><i class="fa-solid fa-cross me-1"></i> Sacerdote</span>
+                            <select id="filterSacerdote" class="filter-select" onchange="refrescarVistasLocales()">
+                                <option value="todos">Todos los sacerdotes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="filter-label"><i class="fa-solid fa-list me-1"></i> Vista de Lista</span>
+                            <select id="vistaLista" class="filter-select" onchange="renderSideList()">
+                                <option value="resumen">Agrupar por Horario</option>
+                                <option value="detalle">Mostrar Detallado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="calendar-wrapper fade-in"><div id="calendar"></div></div>
+                    </div>
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="side-panel-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="side-panel-title">Próximas Misas</span>
+                                <span class="badge-counter" id="contadorMisas">0</span>
+                            </div>
+                            <div id="sideEventsList" class="d-flex flex-column gap-2" style="max-height: 62vh; overflow-y: auto; padding-right: 5px;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button onclick="ejecutarBusqueda()" class="btn btn-primary-custom px-4" style="width: auto;">Buscar</button>
-          </div>
 
-          <!-- Tabla -->
-          <div id="loading-indicator" class="text-center py-5 d-none">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-3 fw-semibold text-muted">Consultando archivos...</p>
-          </div>
+            <!-- =========================================
+               TAB: COMUNITARIA
+               ========================================= -->
+            <div class="tab-pane fade" id="tab-comunitaria">
+                <div class="card-custom mx-auto" style="max-width: 680px;">
+                    <div class="d-flex align-items-center mb-4 gap-3">
+                        <div class="form-icon-badge" style="background: var(--comunitaria-light);">
+                            <i class="fa-solid fa-users fa-lg" style="color: var(--comunitaria);"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-1" style="font-size: 1.3rem;">Registrar Comunitarias</h4>
+                            <p class="text-muted small mb-0">Escriba un nombre y presione ENTER para el siguiente.</p>
+                        </div>
+                    </div>
 
-          <div id="table-container" class="table-container shadow-sm d-none">
-            <table class="table mb-0 table-hover">
-              <thead id="table-head"></thead>
-              <tbody id="results-body"></tbody>
-            </table>
-          </div>
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 px-3 pb-3">
-            <small class="text-muted fw-semibold mb-2 mb-md-0" id="pagination-info">Mostrando 0 de 0 registros</small>
-            <nav>
-              <ul class="pagination pagination-sm mb-0" id="pagination-controls"></ul>
-            </nav>
-          </div>
-        </div>
+                    <form id="formComunitaria" onsubmit="guardarComunitaria(event)">
+                        <div class="section-title">Datos de la Misa</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Fecha de Misa</label>
+                                <input type="date" class="form-control-custom" id="c_fecha" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Horario</label>
+                                <select class="form-select-custom" id="c_hora" required>
+                                    <option value="6:00 PM">6:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
 
-        <div id="tab-historial" class="vista-app d-none">
-          <h2 class="fw-bold mb-4">Certificados Emitidos</h2>
-          
-          <div class="d-flex gap-2 mb-4">
-              <button class="btn btn-sm btn-outline-primary active px-4 rounded-pill fw-bold" id="btn-hist-bau" onclick="setHistorialSource('bautismo')">
-                  <i class="fas fa-dove me-1"></i> Historial Bautismos
-              </button>
-              <button class="btn btn-sm btn-outline-primary px-4 rounded-pill fw-bold" id="btn-hist-conf" onclick="setHistorialSource('confirmacion')">
-                  <i class="fas fa-fire me-1"></i> Historial Confirmaciones
-              </button>
-          </div>
+                        <div class="section-title">Información Adicional</div>
+                        <div class="mb-4">
+                            <label class="form-label-custom">Categoría</label>
+                            <select class="form-select-custom" id="c_categoria" required>
+                                <option value="Por la Salud">Por la Salud</option>
+                                <option value="Por la Vida y la Salud">Por la Vida y la Salud</option>
+                                <option value="En Acción de Gracias">En Acción de Gracias</option>
+                                <option value="Por el Alma">Por el Alma</option>
+                            </select>
+                        </div>
 
-          <div class="table-container shadow-sm p-4">
-            <table class="table table-hover">
-              <thead>
-                <tr><th>Fecha</th><th>Titular</th><th>Emitido por</th><th>Documento</th></tr>
-              </thead>
-              <tbody id="historial-body"></tbody>
-            </table>
-            <div id="historial-loading" class="text-center py-4 d-none"><div class="spinner-border text-primary"></div></div>
-            
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3 border-top pt-3">
-              <small class="text-muted fw-semibold" id="hist-pagination-info">Mostrando registros</small>
-              <nav>
-                <ul class="pagination pagination-sm mb-0" id="hist-pagination-controls"></ul>
-              </nav>
+                        <div class="section-title">Lista de Nombres</div>
+                        <div class="mb-4">
+                            <textarea class="form-control-custom textarea-custom" id="c_text" placeholder="Ej:&#10;Juan Pérez&#10;María Gómez&#10;Luis Fernández" required></textarea>
+                            <small class="text-muted mt-2 d-block">Cada nombre en una línea nueva</small>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                            <button type="button" class="btn-cancel" onclick="document.getElementById('formComunitaria').reset()">
+                                <i class="fa-solid fa-undo me-2"></i>Reset Data
+                            </button>
+                            <button type="submit" class="btn-save" id="btnComunitaria">
+                                <i class="fa-solid fa-floppy-disk me-2"></i>Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  </div>
 
-  <!-- ==================== PANEL LATERAL (OFFCANVAS) ==================== -->
-  <div class="offcanvas offcanvas-end offcanvas-custom" tabindex="-1" id="panelDetalle">
-    <div class="offcanvas-header bg-white border-bottom p-4">
-      <h5 class="offcanvas-title fw-bold text-parroquia" id="mod-head-nombre">Registros</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body p-3">
-  
-      <div class="d-flex gap-2 mb-2">
-        <div class="detail-section flex-grow-1 text-center py-1">
-          <div class="detail-label">Libro</div>
-          <div class="detail-value fs-6" id="det-libro"></div>
-        </div>
-        <div class="detail-section flex-grow-1 text-center py-1">
-          <div class="detail-label">Foja</div>
-          <div class="detail-value fs-6" id="det-foja"></div>
-        </div>
-        <div class="detail-section flex-grow-1 text-center py-1">
-          <div class="detail-label">Partida</div>
-          <div class="detail-value fs-6 text-danger" id="det-num"></div>
-        </div>
-      </div>
-    
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <div class="detail-section h-100 mb-0">
-            <div class="detail-label">Nombres</div>
-            <div class="detail-value fs-6 editable-field" id="det-nombres"></div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="detail-section h-100 mb-0">
-            <div class="detail-label">Apellidos</div>
-            <div class="detail-value fs-6 editable-field" id="det-apellidos"></div>
-          </div>
-        </div>
-      </div>
-    
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <div class="detail-section h-100 mb-0">
-            <div class="detail-label">Padre</div>
-            <div class="detail-value small editable-field" id="det-padre"></div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="detail-section h-100 mb-0">
-            <div class="detail-label">Madre</div>
-            <div class="detail-value small editable-field" id="det-madre"></div>
-          </div>
-        </div>
-      </div>
-    
-      <div class="detail-section mb-2">
-        <div class="detail-label">Lugar de Nacimiento:</div>
-        <div class="detail-value small editable-field" id="det-lugar-nac"></div>
-        <div class="d-flex gap-2 border-top mt-1 pt-1">
-          <div class="flex-fill" style="min-width:0;">
-            <span class="text-muted d-block" style="font-size:0.65rem;">Fecha Numérica</span>
-            <span class="editable-field text-dark fw-medium small" id="det-fecha-nac"></span>
-          </div>
-          <div class="flex-fill" style="min-width:0;">
-            <span class="text-muted fst-italic d-block" style="font-size:0.65rem;">Fecha Escrita</span>
-            <span class="editable-field text-dark fw-medium small" id="det-fecha-nac-literal"></span>
-          </div>
-        </div>
-      </div>
-    
-      <div class="detail-section mb-2" style="background: #e9effd; border-color: var(--brand-accent)">
-        <div class="detail-label text-accent">Datos del Bautismo</div>
-        <div class="detail-value small editable-field" id="det-lugar-bau"></div>
-        <div class="d-flex gap-2 border-top border-primary-subtle mt-1 pt-1">
-          <div class="flex-fill" style="min-width:0;">
-            <span class="text-primary fw-bold d-block" style="font-size:0.65rem;">Fecha Numérica</span>
-            <span class="editable-field small" id="det-fecha-bau"></span>
-          </div>
-          <div class="flex-fill" style="min-width:0;">
-            <span class="text-primary fst-italic d-block" style="font-size:0.65rem;">Fecha Escrita</span>
-            <span class="editable-field small" id="det-fecha-bau-literal"></span>
-          </div>
-        </div>
-      </div>
-    
-      <div id="section-confirmacion-panel" class="d-none">
-        <div class="detail-section mb-2" style="background: #fff4e5; border-color: #ff9800">
-          <div class="detail-label text-warning text-dark">Datos de la Confirmación</div>
-          <div class="detail-value small editable-field" id="det-lugar-conf"></div>
-          <div class="d-flex gap-2 border-top border-warning-subtle mt-1 pt-1">
-            <div class="flex-fill" style="min-width:0;">
-              <span class="text-dark fw-bold d-block" style="font-size:0.65rem;">Fecha Numérica</span>
-              <span class="editable-field small" id="det-fecha-conf"></span>
+            <!-- =========================================
+               TAB: PARTICULAR
+               ========================================= -->
+            <div class="tab-pane fade" id="tab-particular">
+                <div class="card-custom mx-auto" style="max-width: 680px;">
+                    <div class="d-flex align-items-center mb-4 gap-3">
+                        <div class="form-icon-badge" style="background: var(--particular-light);">
+                            <i class="fa-solid fa-user fa-lg" style="color: var(--particular);"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-1" style="font-size: 1.3rem;">Registrar Particular</h4>
+                            <p class="text-muted small mb-0">Intención exclusiva para una fecha y horario.</p>
+                        </div>
+                    </div>
+
+                    <form id="formParticular" onsubmit="guardarParticular(event)">
+                        <div class="section-title">Fecha y Horario</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Fecha</label>
+                                <input type="date" class="form-control-custom" id="p_fecha" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Horario</label>
+                                <select class="form-select-custom" id="p_hora" required>
+                                    <option value="4:45 PM">4:45 PM</option>
+                                    <option value="5:00 PM">5:00 PM</option>
+                                    <option value="7:00 PM">7:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="section-title">Detalles de la Misa</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Sacerdote</label>
+                                <select class="form-select-custom select-sacerdote-form" id="p_sacerdote" required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Categoría</label>
+                                <select class="form-select-custom" id="p_categoria" required>
+                                    <option value="Por la Salud">Por la Salud</option>
+                                    <option value="Por la Vida y la Salud">Por la Vida y la Salud</option>
+                                    <option value="En Acción de Gracias">En Acción de Gracias</option>
+                                    <option value="Por el Alma">Por el Alma</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="section-title">Intención</div>
+                        <div class="mb-4">
+                            <label class="form-label-custom">Para quién</label>
+                            <input type="text" class="form-control-custom" id="p_intencion" placeholder="Nombre de la persona o familia" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label-custom">Quien lo ofrece</label>
+                            <input type="text" class="form-control-custom" id="p_quien" placeholder="Nombre de quien manda a hacer la misa">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label-custom">Motivo</label>
+                            <textarea class="form-control-custom" id="p_motivo" rows="2" placeholder="Describa el motivo específico"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                            <button type="button" class="btn-cancel" onclick="document.getElementById('formParticular').reset()">
+                                <i class="fa-solid fa-undo me-2"></i>Reset Data
+                            </button>
+                            <button type="submit" class="btn-save" id="btnParticular">
+                                <i class="fa-solid fa-floppy-disk me-2"></i>Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="flex-fill" style="min-width:0;">
-              <span class="text-muted fst-italic d-block" style="font-size:0.65rem;">Fecha Escrita</span>
-              <span class="editable-field text-dark fw-medium small" id="det-fecha-conf-literal"></span>
+
+            <!-- =========================================
+               TAB: FRECUENTES / CONTINUAS
+               ========================================= -->
+            <div class="tab-pane fade" id="tab-continuas">
+                <div class="card-custom mx-auto" style="max-width: 720px;">
+                    <div class="d-flex align-items-center mb-4 gap-3">
+                        <div class="form-icon-badge" style="background: var(--continua-light);">
+                            <i class="fa-solid fa-repeat fa-lg" style="color: var(--continua);"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-1" style="font-size: 1.3rem;">Misas Continuas</h4>
+                            <p class="text-muted small mb-0">Agendamiento por rangos de días o meses completos.</p>
+                        </div>
+                    </div>
+
+                    <form id="formContinuas" onsubmit="guardarContinuas(event)">
+                        <div class="section-title">Intención</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-12">
+                                <label class="form-label-custom">Nombre completo</label>
+                                <input type="text" class="form-control-custom" id="fc_intencion" placeholder="Ej: Familia Pérez" required>
+                            </div>
+                        </div>
+
+                        <div class="section-title">Categoría</div>
+                        <div class="mb-4">
+                            <select class="form-select-custom" id="fc_categoria" required>
+                                <option value="Por la Salud">Por la Salud</option>
+                                <option value="Por la Vida y la Salud">Por la Vida y la Salud</option>
+                                <option value="En Acción de Gracias">En Acción de Gracias</option>
+                                <option value="Por el Alma">Por el Alma</option>
+                            </select>
+                        </div>
+
+                        <div class="section-title">Frecuencia</div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="frecuencia-box w-100">
+                                    <input type="radio" name="fc_tipo" value="rango" checked onchange="toggleFrecuencia()"> Días seguidos
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="frecuencia-box w-100">
+                                    <input type="radio" name="fc_tipo" value="dias" onchange="toggleFrecuencia()"> Días semana
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="frecuencia-box w-100">
+                                    <input type="radio" name="fc_tipo" value="mes" onchange="toggleFrecuencia()"> Mes entero
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-4 mb-4 border" style="background: var(--gray-hover);">
+                            <div id="bloque_fechas">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Desde</label>
+                                        <input type="date" class="form-control-custom" id="fc_inicio">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Hasta</label>
+                                        <input type="date" class="form-control-custom" id="fc_fin">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="bloque_mes" style="display: none;">
+                                <label class="form-label-custom">Mes</label>
+                                <input type="month" class="form-control-custom" id="fc_mes_input">
+                            </div>
+
+                            <div id="bloque_dias_semana" style="display: none;">
+                                <label class="form-label-custom mb-3">Días a aplicar:</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <input type="checkbox" class="dia-checkbox fc_day" id="d1" value="1"><label for="d1" class="dia-label">Lun</label>
+                                    <input type="checkbox" class="dia-checkbox fc_day" id="d2" value="2"><label for="d2" class="dia-label">Mar</label>
+                                    <input type="checkbox" class="dia-checkbox fc_day" id="d3" value="3"><label for="d3" class="dia-label">Mié</label>
+                                    <input type="checkbox" class="dia-checkbox fc_day" id="d4" value="4"><label for="d4" class="dia-label">Jue</label>
+                                    <input type="checkbox" class="dia-checkbox fc_day" id="d5" value="5"><label for="d5" class="dia-label">Vie</label>
+                                    <input type="checkbox" class="dia-checkbox fc_day" id="d6" value="6"><label for="d6" class="dia-label">Sáb</label>
+                                </div>
+                            </div>
+
+                            <div id="bloque_domingos" class="mt-3">
+                                <input class="form-check-input" type="checkbox" id="fc_excluir_dom" checked style="accent-color: var(--primary);">
+                                <label class="form-check-label text-muted small fw-medium ms-2" for="fc_excluir_dom">Saltar domingos automáticamente.</label>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <button type="submit" class="btn-save w-100" id="btnContinuas">
+                                <i class="fa-solid fa-calendar-plus me-2"></i>Procesar y Agendar Múltiples Días
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    
-      <div class="detail-section mb-2">
-        <div class="detail-label">Ministro del Sacramento</div>
-        <div class="detail-value small editable-field" id="det-ministro"></div>
-      </div>
-    
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <div class="detail-section h-100 mb-0">
-            <div class="detail-label">Padrino</div>
-            <div class="detail-value small editable-field" id="det-padrino"></div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="detail-section h-100 mb-0">
-            <div class="detail-label">Madrina</div>
-            <div class="detail-value small editable-field" id="det-madrina"></div>
-          </div>
-        </div>
-      </div>
-    
-      <div class="detail-section mb-2">
-        <div class="detail-label">Notas Marginales</div>
-        <textarea id="box-notas-margen" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2" readonly></textarea>
-      </div>
-    
-      <div class="detail-section mb-2">
-        <div class="detail-label">Anotaciones Extra</div>
-        <textarea id="box-anotaciones" class="form-control border-0 bg-light mt-1" style="font-size: 0.8rem; resize: none;" rows="2" readonly></textarea>
-      </div>
-    
-      <button id="btn-generate-pdf" class="btn btn-primary-custom shadow-lg mt-2 py-2" onclick="validarFechasYGenerar()">
-        <i class="fas fa-print me-2"></i> Generar Certificado
-      </button>
-    
-      <div class="mt-3 border-top pt-3">
-        <button class="btn btn-outline-secondary w-100 mb-2 fw-bold" onclick="habilitarEdicion()" id="btn-edit-record">
-          <i class="fas fa-edit me-2"></i> Habilitar Edición
-        </button>
-        <div id="edit-controls" class="d-none d-flex gap-2 mb-2">
-          <button class="btn btn-success flex-grow-1 fw-bold" onclick="guardarCambiosEdicion()" id="btn-save-edit">
-            <i class="fas fa-save me-1"></i> Guardar
-          </button>
-          <button class="btn btn-light border fw-bold" onclick="cancelarEdicion()">Cancelar</button>
-        </div>
-      </div>
-    </div>   
-  </div>
 
-  <!-- MODALES -->
-  <div class="modal fade" id="successPdfModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content modal-success-pdf p-4 text-center border-0 shadow-lg">
-        <div class="mb-4">
-          <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex p-4 mb-3">
-            <i class="fas fa-check-circle fa-4x text-success"></i>
-          </div>
-          <h3 class="fw-bold">Certificado Generado</h3>
-          <p class="text-muted">El documento ha sido procesado y guardado en el archivo digital.</p>
         </div>
-        <div class="d-grid gap-2">
-          <a href="#" id="btn-open-pdf" target="_blank" class="btn btn-primary-custom py-3">
-            <i class="fas fa-external-link-alt me-2"></i>Abrir para Imprimir
-          </a>
-          <button class="btn btn-light rounded-4 py-2 fw-bold" data-bs-dismiss="modal">Cerrar</button>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <div class="modal fade" id="conflictModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 28px; overflow: hidden;">
-        <div class="p-4 text-center" style="background-color: #fef9e7;">
-          <div class="rounded-circle bg-warning d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;">
-            <i class="fas fa-question text-white fa-2x"></i>
-          </div>
-          <h4 class="fw-bold mt-3 mb-1" style="color: #856404;">¿Cómo desea imprimir la fecha?</h4>
-          <p class="text-muted small mb-0" id="conflict-instruction">Elija la opción que debe aparecer en el certificado.</p>
+    <!-- MODAL CON DRAG & DROP PARA COMUNITARIAS -->
+    <div class="modal fade modal-custom" id="diaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0" id="diaModalTitle">Misas del día</h5>
+                        <p class="text-muted small mb-0 mt-1">Arrastre para organizar. Edite en línea.</p>
+                    </div>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="diaModalBody"></div>
+            </div>
         </div>
-  
-        <div class="modal-body p-4">
-          <div class="d-grid gap-3">
-            <button class="btn py-3 px-4 text-start d-flex align-items-center justify-content-between shadow-sm" 
-                    id="btn-use-written" 
-                    style="border-radius: 18px; border: 2px solid #e3f2fd; background-color: #f0f7ff; transition: all 0.2s;">
-              <div style="flex: 1;">
-                <small class="d-block fw-bold text-primary text-uppercase mb-1" style="font-size: 0.7rem;">OPCIÓN A: USAR EL TEXTO ESCRITO</small>
-                <span class="fs-6 fw-bold text-dark" id="txt-written-preview" style="line-height: 1.2;">...</span>
-              </div>
-              <div class="ms-3 bg-primary bg-opacity-10 p-2 rounded-circle">
-                <i class="fas fa-pen-nib text-primary"></i>
-              </div>
-            </button>
-  
-            <button class="btn py-3 px-4 text-start d-flex align-items-center justify-content-between shadow-sm" 
-                    id="btn-use-numeric" 
-                    style="border-radius: 18px; border: 2px solid #e8f5e9; background-color: #f1fcf2; transition: all 0.2s;">
-              <div style="flex: 1;">
-                <small class="d-block fw-bold text-success text-uppercase mb-1" style="font-size: 0.7rem;">OPCIÓN B: USAR FECHA DEL SISTEMA</small>
-                <span class="fs-6 fw-bold text-dark" id="txt-numeric-preview" style="line-height: 1.2;">...</span>
-              </div>
-              <div class="ms-3 bg-success bg-opacity-10 p-2 rounded-circle">
-                <i class="fas fa-calendar-check text-success"></i>
-              </div>
-            </button>
-          </div>
-  
-          <div class="text-center mt-4">
-            <button class="btn btn-link text-muted text-decoration-none small fw-bold" id="btn-cancel-conflict">
-               No imprimir nada todavía (Cerrar)
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-  
-  <div class="modal fade" id="updateSuccessModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content p-4 text-center border-0 shadow-lg" style="border-radius: 24px;">
-        <div class="mb-3">
-          <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex p-3 mb-2">
-            <i class="fas fa-check-circle fa-3x text-success"></i>
-          </div>
-          <h4 class="fw-bold">¡Actualizado!</h4>
-          <p class="text-muted small">El registro se modificó correctamente en la base de datos.</p>
+
+    <!-- MODAL PARA PARTICULAR -->
+    <div class="modal fade modal-custom" id="particularModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <span class="badge" id="partCategoria" style="background: var(--particular-light); color: var(--particular); padding: 6px 12px; border-radius: 40px; margin-bottom: 12px; display: inline-block;">Categoría</span>
+                        <h5 class="fw-bold text-dark mb-1" id="partIntencion">Intención</h5>
+                        <p class="text-muted small mb-0" id="partFechaHora">Fecha y hora</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <hr class="my-3">
+                    <p class="mb-0 text-dark" id="partMotivo">Motivo de la intención</p>
+                    <div class="mt-3 pt-2 border-top">
+                        <button class="btn btn-outline-primary w-100 py-2 rounded-3 fw-semibold" onclick="editarParticular()">
+                            <i class="fa-solid fa-pen me-2"></i>Editar Misa
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <button class="btn btn-light rounded-pill py-2 fw-bold w-100 border" data-bs-dismiss="modal">Aceptar</button>
-      </div>
     </div>
-  </div>
 
-  <input type="hidden" id="input-sacerdote-activo" value="">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyKMnK7kV1yjGzk6DexZxkw65mx26SohJ1R0JCMUVqo8t4RRfLEaC9UkKIWtWyCkmGS/exec"; 
+        let localData = { sacerdotes:[], intenciones:[] };
+        let calendar;
+        let currentParticularId = '';
+        const Toast = Swal.mixin({ toast: true, position: "top-end", showConfirmButton: false, timer: 2000, timerProgressBar: true });
+        const CATEGORIAS_OFICIALES = ["Por la Salud", "Por la Vida y la Salud", "En Acción de Gracias", "Por el Alma"];
 
-  <div class="modal fade" id="modalSacerdotes" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
-        <div class="modal-header border-0 pb-0 mt-3 px-4">
-          <h5 class="fw-bold text-parroquia"><i class="fas fa-user-tie text-primary me-2"></i>Sacerdotes</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body p-4">
-          <div class="input-group mb-4 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-            <input type="text" id="nuevo-sacerdote" class="form-control border-0 bg-light px-3" placeholder="Ej: Pbro. Juan Pérez">
-            <button class="btn btn-primary-custom px-4" style="border-radius: 0; width: auto;" onclick="agregarSacerdote()" id="btn-add-sac">Agregar</button>
-          </div>
-          <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-            <table class="table table-hover align-middle mb-0">
-              <tbody id="lista-sacerdotes"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    const API_BAUTISMO = "https://script.google.com/macros/s/AKfycbyiFao36Cgrfe7IHyevzx81euc_yK17-6BAjxIP1XJ7cIEZ0U_3lcM4Zfx2xB9aPqNrUA/exec"; 
-    const API_CONFIRMACION = "https://script.google.com/macros/s/AKfycbyLw_K3TYBvsSPrlQFG2HdH9pJWgcO9zmSNggyPOjvNvh2Jb_izrCZ3DzXgTvFFBv1C/exec"; 
-    const SHEET_BAUTISMO = "https://docs.google.com/spreadsheets/d/1KQBNB5D7y47LohUwpOIOYOWUQ3YUlUVnCSnhiH1u8-Y/edit";
-    const SHEET_CONFIRMACION = "https://docs.google.com/spreadsheets/d/1o-VH1zesx4HnEXqtgaA3OS9IP2OEm3OEIgDSryCRRtw/edit";
-
-    let API_URL = API_BAUTISMO;
-    let moduloActual = 'bautismo';
-    let datosActuales = [];
-    let paginaActual = 1;
-    const filasPorPagina = 10;
-    
-    let modalConflicto; 
-    let sidebarDetalle;
-    let modalExito;
-    let registroSeleccionado = null; 
-    
-    let fuenteHistorialActual = 'bautismo';
-    let paginaHistorialActual = 1;
-    const filasPorPaginaHistorial = 20;
-    let datosHistorialCrudos = [];
-
-    let modalSacerdotes;
-
-    // Función para colapsar/expandir sidebar
-    function toggleSidebar() {
-      const sidebar = document.getElementById('main-sidebar');
-      sidebar.classList.toggle('collapsed');
-      
-      // Guardar estado en localStorage
-      const isCollapsed = sidebar.classList.contains('collapsed');
-      localStorage.setItem('sidebarCollapsed', isCollapsed);
-    }
-    // Funciones para el menú móvil
-    function toggleMobileMenu() {
-    const menu = document.getElementById('mobile-dropdown-menu');
-    menu.classList.toggle('show');
-    
-    // Cambiar ícono del botón
-    const btnIcon = document.querySelector('#mobile-menu-toggle i');
-    if (menu.classList.contains('show')) {
-        btnIcon.classList.remove('fa-bars');
-        btnIcon.classList.add('fa-times');
-    } else {
-        btnIcon.classList.remove('fa-times');
-        btnIcon.classList.add('fa-bars');
-    }
-    }
-
-    function closeMobileMenu() {
-    const menu = document.getElementById('mobile-dropdown-menu');
-    menu.classList.remove('show');
-    const btnIcon = document.querySelector('#mobile-menu-toggle i');
-    btnIcon.classList.remove('fa-times');
-    btnIcon.classList.add('fa-bars');
-    }
-
-    // Cerrar menú al hacer clic fuera (opcional, pero mejora UX)
-    document.addEventListener('click', function(event) {
-    const menu = document.getElementById('mobile-dropdown-menu');
-    const toggleBtn = document.getElementById('mobile-menu-toggle');
-    
-    if (menu && menu.classList.contains('show')) {
-        if (!menu.contains(event.target) && !toggleBtn.contains(event.target)) {
-        closeMobileMenu();
-        }
-    }
-    });
-
-    // Función para manejar el menú móvil
-    function handleMobileMenuChange(value) {
-      switch(value) {
-        case 'bautismo':
-          setModulo('bautismo');
-          break;
-        case 'confirmacion':
-          setModulo('confirmacion');
-          break;
-        case 'sacerdotes':
-          abrirModalSacerdotes();
-          // Resetear el select después de abrir modal
-          setTimeout(() => {
-            const select = document.getElementById('mobile-menu-select');
-            if (select) select.value = moduloActual === 'bautismo' ? 'bautismo' : 'confirmacion';
-          }, 100);
-          break;
-        case 'historial':
-          cambiarPestaña('tab-historial');
-          cargarHistorial();
-          break;
-        case 'cerrar':
-          cerrarSesion();
-          break;
-      }
-    }
-
-    function setModulo(mod) {
-    moduloActual = mod;
-    API_URL = (mod === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
-    
-    document.getElementById('btn-open-gsheet').href = (mod === 'bautismo') ? SHEET_BAUTISMO : SHEET_CONFIRMACION;
-    
-    document.getElementById('search-input').value = "";
-    document.getElementById('year-filter').value = "";
-    document.getElementById('main-title').innerText = (mod === 'bautismo') ? "Registros de Bautismo" : "Registros de Confirmación";
-    
-    cambiarPestaña('tab-busqueda');
-    
-    // Actualizar sidebar normal
-    document.getElementById('btn-mod-bautismo').classList.toggle('active', mod === 'bautismo');
-    document.getElementById('btn-mod-confirmacion').classList.toggle('active', mod === 'confirmacion');
-    
-    // AÑADE ESTAS LÍNEAS para actualizar el menú móvil
-    document.getElementById('mobile-btn-bautismo').classList.toggle('active', mod === 'bautismo');
-    document.getElementById('mobile-btn-confirmacion').classList.toggle('active', mod === 'confirmacion');
-    
-    realizarPeticionBusqueda("", "");
-    }
-
-    function mostrarResultados(res) {
-      const thead = document.getElementById('table-head');
-      const tbody = document.getElementById('results-body');
-      
-      let headerHTML = `<tr>
-        <th>ID</th>
-        <th>Libro / Foja / Partida</th>
-        <th>Nombre Completo</th>`;
-      
-      if(moduloActual === 'confirmacion') {
-        headerHTML += `<th>Catequesis</th>`;
-      }
-      
-      headerHTML += `<th>Fecha ${moduloActual === 'confirmacion' ? 'Confirma.' : 'Bautizo'}</th>
-        <th>Acción</th>
-       </tr>`;
-      
-      thead.innerHTML = headerHTML;
-
-      if (res) {
-        datosActuales = (res || []).map(item => ({ ...item, libro: item.nro_libro }));
-        paginaActual = 1;
-      }
-
-      tbody.innerHTML = '';
-      if (datosActuales.length === 0) {
-        document.getElementById('table-container').classList.add('d-none');
-        return;
-      }
-      document.getElementById('table-container').classList.remove('d-none');
-
-      const inicio = (paginaActual - 1) * filasPorPagina;
-      const fin = inicio + filasPorPagina;
-      const datosPaginados = datosActuales.slice(inicio, fin);
-
-      datosPaginados.forEach((f, i) => {
-        const indiceReal = inicio + i;
-        
-        // UX/UI: Creamos un badge sutil y moderno solo si hay un estado escrito en el Sheets
-        let badgeEstado = "";
-        if (f.estado && f.estado.toString().trim() !== "") {
-          badgeEstado = `<span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning-subtle mt-1 d-inline-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">${f.estado.toUpperCase()}</span>`;
-        }
-
-        let rowHTML = `<tr>
-          <td class="align-middle">
-            <span class="fw-bold text-primary small d-block">${f.id}</span>
-            ${badgeEstado}
-          </td>
-          <td class="align-middle"><span class="badge bg-light text-dark border p-2">L:${f.libro} F:${f.foja} P:${f.numero}</span></td>
-          <td class="align-middle">
-            <span class="fw-semibold d-block text-dark" style="font-size:0.9rem;">${(f.nombre_completo || "").toUpperCase()}</span>
-            <small class="text-muted" style="font-size: 0.70rem;">
-               <i class="fas fa-users me-1 opacity-50"></i> ${(f.padre || "-").toUpperCase()} y ${(f.madre || "-").toUpperCase()}
-            </small>
-           </td>`;
-
-        if(moduloActual === 'confirmacion') {
-          rowHTML += `<td class="align-middle small fw-bold text-success">${f.catequesis || "-"}</td>`;
-        }
-
-        rowHTML += `<td class="text-muted small align-middle">${f.fecha_confirmacion || f.fecha_bautizo || "-"}</td>
-          <td class="align-middle"><button class="btn btn-action btn-sm" onclick="abrirPanelDetalle(${indiceReal})">Ver</button></td>
-         </tr>`;
-        tbody.innerHTML += rowHTML;
-      });
-
-      renderizarPaginacion();
-    }
-    
-    function cambiarPestaña(tabId) {
-        document.querySelectorAll('.vista-app').forEach(el => el.classList.add('d-none'));
-        document.querySelectorAll('.nav-pill-custom').forEach(el => el.classList.remove('active'));
-        
-        const targetTab = document.getElementById(tabId);
-        if (targetTab) targetTab.classList.remove('d-none');
-        
-        const btnId = "btn-" + tabId;
-        const targetBtn = document.getElementById(btnId);
-        if (targetBtn) targetBtn.classList.add('active');
-    }
-
-    async function iniciarSesion(event) {
-      event.preventDefault();
-      const userField = document.getElementById('username');
-      const passField = document.getElementById('password');
-      const btnLogin = document.getElementById('btn-login');
-      const errorMsg = document.getElementById('login-error');
-
-      const usu = userField.value.trim();
-      const pas = passField.value.trim();
-
-      btnLogin.disabled = true;
-      btnLogin.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Verificando...`;
-      errorMsg.classList.add('d-none');
-
-      try {
-        const res = await fetch(API_URL, { 
-          method: 'POST', 
-          mode: 'cors',
-          body: JSON.stringify({ accion: 'login', usuario: usu, password: pas }) 
+        document.addEventListener('DOMContentLoaded', async () => {
+            await cargarDatosIniciales(); 
+            initCalendar(); 
+            renderSideList(); 
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('c_fecha').addEventListener('change', actualizarHorariosComunitaria);
+            toggleFrecuencia();
         });
-        const data = await res.json();
 
-        if (data.success) {
-          localStorage.setItem('sesionParroquia', 'activa');
-          localStorage.setItem('usuarioParroquia', usu);
-          mostrarApp(); 
-        } else {
-          errorMsg.classList.remove('d-none');
-          btnLogin.disabled = false;
-          btnLogin.innerHTML = "Ingresar al Sistema";
+        function irACrear() {
+            const tabBtn = document.getElementById('nav-comunitaria');
+            const tab = new bootstrap.Tab(tabBtn);
+            tab.show();
         }
-      } catch (e) {
-        alert("Error de conexión con el servidor. Verifica que la URL del API sea correcta y esté publicada como 'Cualquiera'.");
-        btnLogin.disabled = false;
-        btnLogin.innerHTML = "Ingresar al Sistema";
-      }
-    }
 
-    function mostrarApp() {
-      document.getElementById('login-screen').classList.add('d-none'); 
-      document.getElementById('app-screen').classList.remove('d-none');
-      const usuarioLogueado = localStorage.getItem('usuarioParroquia') || "ADMIN";
-      document.getElementById('nav-user-label').innerText = usuarioLogueado.toUpperCase();
-      document.getElementById('mobile-user-label').innerText = usuarioLogueado.toUpperCase();
-      
-      // Restaurar estado del sidebar
-      const sidebar = document.getElementById('main-sidebar');
-      const savedState = localStorage.getItem('sidebarCollapsed');
-      if (savedState === 'true') {
-        sidebar.classList.add('collapsed');
-      } else {
-        sidebar.classList.remove('collapsed');
-      }
-      
-      cargarSacerdotesSilencioso();
-      setModulo('bautismo');
-    }
-
-    function cerrarSesion() { 
-      localStorage.clear(); 
-      location.reload(); 
-    }
-
-    async function realizarPeticionBusqueda(termino, anio) {
-      document.getElementById('loading-indicator').classList.remove('d-none');
-      document.getElementById('table-container').classList.add('d-none');
-      try {
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'buscar', termino, anio }) });
-        const data = await res.json();
-        mostrarResultados(data.data);
-      } catch (e) { console.error(e); }
-      document.getElementById('loading-indicator').classList.add('d-none');
-    }
-
-    function ejecutarBusqueda() {
-      const termino = document.getElementById('search-input').value.trim();
-      const anio = document.getElementById('year-filter').value.trim();
-      cambiarPestaña('tab-busqueda');
-      realizarPeticionBusqueda(termino, anio);
-    }
-
-    document.getElementById('search-input').addEventListener('keypress', (e) => { 
-      if (e.key === 'Enter') ejecutarBusqueda(); 
-    });
-    document.getElementById('year-filter').addEventListener('keypress', (e) => { 
-      if (e.key === 'Enter') ejecutarBusqueda(); 
-    });
-
-    function renderizarPaginacion() {
-      const totalPaginas = Math.ceil(datosActuales.length / filasPorPagina);
-      const container = document.getElementById('pagination-controls');
-      const info = document.getElementById('pagination-info');
-      
-      container.innerHTML = '';
-      info.innerText = `Mostrando página ${paginaActual} de ${totalPaginas} (${datosActuales.length} registros)`;
-
-      if (totalPaginas <= 1) return;
-
-      container.innerHTML += `<li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
-        <a class="page-link" href="javascript:void(0)" onclick="cambiarPagina(${paginaActual - 1})"><i class="fas fa-chevron-left"></i></a>
-      </li>`;
-
-      for (let i = 1; i <= totalPaginas; i++) {
-        container.innerHTML += `<li class="page-item ${paginaActual === i ? 'active' : ''}">
-          <a class="page-link" href="javascript:void(0)" onclick="cambiarPagina(${i})">${i}</a>
-        </li>`;
-      }
-
-      container.innerHTML += `<li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
-        <a class="page-link" href="javascript:void(0)" onclick="cambiarPagina(${paginaActual + 1})"><i class="fas fa-chevron-right"></i></a>
-      </li>`;
-    }
-
-    function cambiarPagina(p) {
-      paginaActual = p;
-      mostrarResultados();
-      document.querySelector('.main-content').scrollTop = 0;
-    }
-
-    function abrirPanelDetalle(idx) {
-      registroSeleccionado = datosActuales[idx];
-      const d = registroSeleccionado;
-      document.getElementById('mod-head-nombre').innerText = d.id;
-      
-      document.getElementById('det-libro').innerText = d.libro || d.nro_libro || "";
-      document.getElementById('det-foja').innerText = d.foja || "";
-      document.getElementById('det-num').innerText = d.numero || "";
-      document.getElementById('det-nombres').innerText = (d.nombres || "").toUpperCase();
-      document.getElementById('det-apellidos').innerText = (d.apellidos || "").toUpperCase();
-      document.getElementById('det-padre').innerText = (d.padre || "").toUpperCase();
-      document.getElementById('det-madre').innerText = (d.madre || "").toUpperCase();
-      document.getElementById('det-ministro').innerText = (d.ministro || "").toUpperCase();
-      
-      document.getElementById('det-lugar-nac').innerText = d.lugar_nacimiento || "";
-      document.getElementById('det-fecha-nac').innerText = d.fecha_nacimiento || "";
-      document.getElementById('det-fecha-nac-literal').innerText = d.fecha_nac_escrito || "";
-
-      const panelConfi = document.getElementById('section-confirmacion-panel');
-      
-      if (moduloActual === 'confirmacion') {
-        panelConfi.classList.remove('d-none');
-        document.getElementById('det-lugar-conf').innerText = d.lugar_confirmacion || "";
-        document.getElementById('det-fecha-conf').innerText = d.fecha_confirmacion || "";
-        document.getElementById('det-fecha-conf-literal').innerText = d.fecha_confirmacion_escrita || "";
-        document.getElementById('det-lugar-bau').innerText = d.lugar_bautismo || "";
-        document.getElementById('det-fecha-bau').innerText = d.fecha_bau_original || "";
-        document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bau_escrito_original || "";
-      } else {
-        panelConfi.classList.add('d-none');
-        document.getElementById('det-lugar-bau').innerText = d.lugar_bautizo || "";
-        document.getElementById('det-fecha-bau').innerText = d.fecha_bautizo || "";
-        document.getElementById('det-fecha-bau-literal').innerText = d.fecha_bautizo_escrito || "";
-      }
-
-      document.getElementById('det-padrino').innerText = (d.padrino || "").toUpperCase();
-      document.getElementById('det-madrina').innerText = (d.madrina || "").toUpperCase();
-      document.getElementById('box-notas-margen').value = d.nota_marginal || "";
-      document.getElementById('box-anotaciones').value = d.anotaciones || "";
-      
-      cancelarEdicion();
-      sidebarDetalle.show();
-    }
-    
-    async function enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal, fechaConfFinal) {
-      const btn = document.getElementById("btn-generate-pdf");
-      const originalHTML = btn.innerHTML;
-    
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Generando...`;
-    
-      try {
-        const pckg = { 
-           accion: 'generar_partida', 
-           datos: { 
-             id: registroSeleccionado.id,
-             nro_libro: document.getElementById('det-libro').innerText.trim(),
-             foja: document.getElementById('det-foja').innerText.trim(),
-             numero: document.getElementById('det-num').innerText.trim(),
-             nombres: document.getElementById('det-nombres').innerText.trim(),
-             apellidos: document.getElementById('det-apellidos').innerText.trim(),
-             padre: document.getElementById('det-padre').innerText.trim(),
-             madre: document.getElementById('det-madre').innerText.trim(),
-             ministro: document.getElementById('det-ministro').innerText.trim(),
-             padrino: document.getElementById('det-padrino').innerText.trim(),
-             madrina: document.getElementById('det-madrina').innerText.trim(),
-             lugarNac: document.getElementById('det-lugar-nac').innerText.trim(),
-             fechaNac: fechaNacFinal,
-             lugarBau: document.getElementById('det-lugar-bau').innerText.trim(),
-             fechaBau: fechaBauFinal,
-             fechaConf: fechaConfFinal, 
-             lugarConf: moduloActual === 'confirmacion' ? document.getElementById('det-lugar-conf').innerText : "",
-             notas: document.getElementById('box-notas-margen').value,
-             sacerdote_activo: document.getElementById('input-sacerdote-activo').value
-           },
-           usuario: localStorage.getItem('usuarioParroquia')
-        };
-        
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pckg) });
-        const data = await res.json();
-        
-        if (data.success) {
-          sidebarDetalle.hide();
-          document.getElementById('btn-open-pdf').href = data.pdfUrl;
-          modalExito.show();
-        } else {
-          alert("Error: " + data.message);
-        }
-      } catch (e) {
-        alert("Error de conexión con el servidor.");
-      } finally {
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-      }
-    }
-
-    async function validarFechasYGenerar() {
-      const d = {
-        fecha_nacimiento: document.getElementById('det-fecha-nac').innerText,
-        fecha_nac_escrito: document.getElementById('det-fecha-nac-literal').innerText,
-        fecha_bautizo: document.getElementById('det-fecha-bau').innerText,
-        fecha_bautizo_escrito: document.getElementById('det-fecha-bau-literal').innerText
-      };
-
-      let fConfNum = "";
-      let fConfEsc = "";
-      if (moduloActual === 'confirmacion') {
-        fConfNum = document.getElementById('det-fecha-conf').innerText;
-        fConfEsc = document.getElementById('det-fecha-conf-literal').innerText;
-      }
-
-      let fechaNacFinal = "";
-      let fechaBauFinal = "";
-      let fechaConfFinal = "";
-    
-      async function procesarEscenarios(tipo, fecNumerica, fecEscrita) {
-        let numLimpia = (fecNumerica && fecNumerica !== "-") ? fecNumerica.trim() : "";
-        let escLimpia = (fecEscrita && fecEscrita !== "-") ? fecEscrita.trim() : "";
-        let numLarga = formatoFechaLarga(numLimpia);
-        
-        let resultado = "";
-        if (numLimpia !== "" && escLimpia !== "") {
-          let eleccion = await pedirEleccionFecha(tipo, escLimpia, numLarga);
-          if (eleccion === 'cancelar') return null; 
-          resultado = (eleccion === 'escrita') ? escLimpia : numLarga;
-        } 
-        else if (numLimpia !== "") resultado = numLarga;
-        else if (escLimpia !== "") resultado = escLimpia;
-        else resultado = ""; 
-
-        return resultado.toUpperCase();
-      }
-    
-      fechaNacFinal = await procesarEscenarios("NACIMIENTO", d.fecha_nacimiento, d.fecha_nac_escrito);
-      if (fechaNacFinal === null) return; 
-    
-      await new Promise(r => setTimeout(r, 400));
-    
-      fechaBauFinal = await procesarEscenarios("BAUTISMO", d.fecha_bautizo, d.fecha_bautizo_escrito);
-      if (fechaBauFinal === null) return; 
-
-      if (moduloActual === 'confirmacion') {
-        await new Promise(r => setTimeout(r, 400));
-        fechaConfFinal = await procesarEscenarios("CONFIRMACIÓN", fConfNum, fConfEsc);
-        if (fechaConfFinal === null) return;
-      }
-    
-      enviarDatosAGoogleSheets(fechaNacFinal, fechaBauFinal, fechaConfFinal);
-    }
-
-    function setHistorialSource(source) {
-      fuenteHistorialActual = source;
-      paginaHistorialActual = 1;
-      datosHistorialCrudos = [];
-      
-      document.getElementById('btn-hist-bau').classList.toggle('active', source === 'bautismo');
-      document.getElementById('btn-hist-conf').classList.toggle('active', source === 'confirmacion');
-      
-      cargarHistorial();
-    }
-
-    async function cargarHistorial() {
-      const cont = document.getElementById("historial-body");
-      const loading = document.getElementById("historial-loading");
-      
-      if (datosHistorialCrudos.length === 0) {
-        cont.innerHTML = "";
-        loading.classList.remove('d-none');
-        const urlParaHistorial = (fuenteHistorialActual === 'bautismo') ? API_BAUTISMO : API_CONFIRMACION;
-        
-        try {
-          const res = await fetch(urlParaHistorial, { method: 'POST', body: JSON.stringify({ accion: 'obtener_historial' }) });
-          const obj = await res.json();
-          datosHistorialCrudos = obj.data || [];
-        } catch (e) {
-          cont.innerHTML = "<tr><td colspan='4' class='text-center text-danger'>Error de conexión.</td></tr>";
-          loading.classList.add('d-none');
-          return;
-        }
-      }
-
-      loading.classList.add('d-none');
-      renderizarTablaHistorial();
-    }
-
-    function renderizarTablaHistorial() {
-      const cont = document.getElementById("historial-body");
-      cont.innerHTML = "";
-
-      if (datosHistorialCrudos.length === 0) {
-        cont.innerHTML = "<tr><td colspan='4' class='text-center py-4'>No hay registros.</td></tr>";
-        return;
-      }
-
-      const inicio = (paginaHistorialActual - 1) * filasPorPaginaHistorial;
-      const fin = inicio + filasPorPaginaHistorial;
-      const paginados = datosHistorialCrudos.slice(inicio, fin);
-
-      paginados.forEach(g => {
-        cont.innerHTML += `<tr class="small">
-          <td>${g.fechaHora}</td>
-          <td class="fw-bold">${(g.nombreCompleto || "").toUpperCase()}</td>
-          <td><span class="badge bg-light text-dark border">${g.usuario}</span></td>
-          <td><a href="${g.link}" target="_blank" class="btn btn-sm btn-outline-primary py-0 fw-bold">Ver PDF</a></td>
-         </tr>`;
-      });
-
-      renderizarPaginacionHistorial();
-    }
-
-    function renderizarPaginacionHistorial() {
-      const totalPaginas = Math.ceil(datosHistorialCrudos.length / filasPorPaginaHistorial);
-      const container = document.getElementById('hist-pagination-controls');
-      const info = document.getElementById('hist-pagination-info');
-      
-      container.innerHTML = '';
-      info.innerText = `Página ${paginaHistorialActual} de ${totalPaginas} (${datosHistorialCrudos.length} totales)`;
-
-      if (totalPaginas <= 1) return;
-
-      container.innerHTML += `<li class="page-item ${paginaHistorialActual === 1 ? 'disabled' : ''}">
-        <a class="page-link" href="javascript:void(0)" onclick="cambiarPaginaHistorial(${paginaHistorialActual - 1})"><i class="fas fa-chevron-left"></i></a>
-      </li>`;
-
-      for (let i = 1; i <= totalPaginas; i++) {
-        if (i === 1 || i === totalPaginas || (i >= paginaHistorialActual - 1 && i <= paginaHistorialActual + 1)) {
-          container.innerHTML += `<li class="page-item ${paginaHistorialActual === i ? 'active' : ''}">
-            <a class="page-link" href="javascript:void(0)" onclick="cambiarPaginaHistorial(${i})">${i}</a>
-          </li>`;
-        }
-      }
-
-      container.innerHTML += `<li class="page-item ${paginaHistorialActual === totalPaginas ? 'disabled' : ''}">
-        <a class="page-link" href="javascript:void(0)" onclick="cambiarPaginaHistorial(${paginaHistorialActual + 1})"><i class="fas fa-chevron-right"></i></a>
-      </li>`;
-    }
-
-    function cambiarPaginaHistorial(p) {
-      paginaHistorialActual = p;
-      renderizarTablaHistorial();
-    }
-
-    function formatoFechaLarga(fechaStr) {
-      if(!fechaStr || fechaStr === "-") return "";
-      let p = fechaStr.trim().split("/");
-      if(p.length === 3) {
-        const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-        let dia = parseInt(p[0], 10);
-        let mes = meses[parseInt(p[1], 10) - 1];
-        if(dia && mes && p[2]) return `${dia} DE ${mes} DE ${p[2]}`;
-      }
-      return fechaStr.toUpperCase();
-    }
-    
-    function pedirEleccionFecha(tipo, escrita, numericaLarga) {
-      return new Promise((resolve) => {
-        document.getElementById('conflict-instruction').innerHTML = 
-          `Se encontraron dos formas de escribir la fecha de <b>${tipo}</b>. <br> ¿Cuál de estas dos quiere que se imprima?`;
-        
-        document.getElementById('txt-written-preview').innerText = escrita;
-        document.getElementById('txt-numeric-preview').innerText = numericaLarga;
-
-        document.getElementById('btn-use-written').onclick = () => { modalConflicto.hide(); resolve('escrita'); };
-        document.getElementById('btn-use-numeric').onclick = () => { modalConflicto.hide(); resolve('numerica'); };
-        document.getElementById('btn-cancel-conflict').onclick = () => { modalConflicto.hide(); resolve('cancelar'); };
-        
-        modalConflicto.show();
-      });
-    }
-
-    function habilitarEdicion() {
-      document.getElementById('panelDetalle').classList.add('editing-mode');
-      document.getElementById('btn-edit-record').classList.add('d-none');
-      document.getElementById('edit-controls').classList.remove('d-none');
-      
-      document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'true'));
-      document.getElementById('box-notas-margen').removeAttribute('readonly');
-      document.getElementById('box-anotaciones').removeAttribute('readonly');
-      document.getElementById('btn-generate-pdf').disabled = true;
-    }
-
-    function cancelarEdicion() {
-      document.getElementById('panelDetalle').classList.remove('editing-mode');
-      document.getElementById('btn-edit-record').classList.remove('d-none');
-      document.getElementById('edit-controls').classList.add('d-none');
-      
-      document.querySelectorAll('.editable-field').forEach(el => el.removeAttribute('contenteditable'));
-      document.getElementById('box-notas-margen').setAttribute('readonly', 'true');
-      document.getElementById('box-anotaciones').setAttribute('readonly', 'true');
-      document.getElementById('btn-generate-pdf').disabled = false;
-    }
-
-    async function guardarCambiosEdicion() {
-      const btn = document.getElementById('btn-save-edit');
-      const originalHTML = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>...`;
-    
-      const datosEditados = {
-        id: registroSeleccionado.id,
-        nro_libro: document.getElementById('det-libro').innerText.trim(),
-        foja: document.getElementById('det-foja').innerText.trim(),
-        numero: document.getElementById('det-num').innerText.trim(),
-        nombres: document.getElementById('det-nombres').innerText.trim(),
-        apellidos: document.getElementById('det-apellidos').innerText.trim(),
-        padre: document.getElementById('det-padre').innerText.trim(),
-        madre: document.getElementById('det-madre').innerText.trim(),
-        lugar_nacimiento: document.getElementById('det-lugar-nac').innerText.trim(),
-        fecha_nacimiento: document.getElementById('det-fecha-nac').innerText.trim(),
-        fecha_nac_escrito: document.getElementById('det-fecha-nac-literal').innerText.trim(),
-        fecha_bautizo: document.getElementById('det-fecha-bau').innerText.trim(),
-        fecha_bautizo_escrito: document.getElementById('det-fecha-bau-literal').innerText.trim(),
-        ministro: document.getElementById('det-ministro').innerText.trim(),
-        padrino: document.getElementById('det-padrino').innerText.trim(),
-        madrina: document.getElementById('det-madrina').innerText.trim(),
-        nota_marginal: document.getElementById('box-notas-margen').value,
-        anotaciones: document.getElementById('box-anotaciones').value
-      };
-      
-      if (moduloActual === 'confirmacion') {
-        datosEditados.lugar_bautismo = document.getElementById('det-lugar-bau').innerText.trim();
-        datosEditados.lugar_confirmacion = document.getElementById('det-lugar-conf').innerText.trim();
-        datosEditados.fecha_confirmacion = document.getElementById('det-fecha-conf').innerText.trim();
-        datosEditados.fecha_confirmacion_escrita = document.getElementById('det-fecha-conf-literal').innerText.trim();
-      } else {
-        datosEditados.lugar_bautizo = document.getElementById('det-lugar-bau').innerText.trim();
-      }
-    
-      try {
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ accion: 'editar', datos: datosEditados }) });
-        const data = await res.json();
-        if (data.success) {
-          cancelarEdicion();
-          ejecutarBusqueda();
-          let modalUpdateSuccess = new bootstrap.Modal(document.getElementById('updateSuccessModal'));
-          modalUpdateSuccess.show();
-        } else { alert("Error: " + data.message); }
-      } catch (e) { alert("Error de conexión al guardar."); } 
-      finally { btn.disabled = false; btn.innerHTML = originalHTML; }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      modalConflicto = new bootstrap.Modal(document.getElementById('conflictModal'));
-      sidebarDetalle = new bootstrap.Offcanvas(document.getElementById('panelDetalle'));
-      modalExito = new bootstrap.Modal(document.getElementById('successPdfModal'));
-      modalSacerdotes = new bootstrap.Modal(document.getElementById('modalSacerdotes'));
-
-      if (localStorage.getItem('sesionParroquia') === 'activa') {
-        mostrarApp(); 
-      }
-    });
-
-    async function abrirModalSacerdotes() {
-      modalSacerdotes.show();
-      await cargarSacerdotesLista();
-    }
-
-    async function cargarSacerdotesSilencioso() {
-      try {
-        const res = await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'obtener_sacerdotes' }) });
-        const data = await res.json();
-        if (data.success) {
-          data.data.forEach(sac => {
-            if (sac[1] && sac[1].toString().toUpperCase() === 'ACTIVO') {
-              document.getElementById('input-sacerdote-activo').value = sac[0];
+        async function fetchAPI(action, data = {}) {
+            try {
+                const response = await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action, data }) 
+                });
+                const result = await response.json(); 
+                if(result.status === 'error') throw new Error(result.message);
+                return result.data;
+            } catch (error) { 
+                Swal.fire('Error', error.message, 'error'); 
+                return null; 
             }
-          });
         }
-      } catch (e) { console.error("Error cargando sacerdote activo", e); }
-    }
 
-    async function cargarSacerdotesLista() {
-      const lista = document.getElementById('lista-sacerdotes');
-      lista.innerHTML = '<tr><td class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div> Cargando...</td></tr>';
-      
-      try {
-        const res = await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'obtener_sacerdotes' }) });
-        const data = await res.json();
+        async function cargarDatosIniciales() {
+            const data = await fetchAPI('getInitialData'); 
+            if(data) { 
+                localData = data; 
+                llenarSacerdotes(); 
+            }
+        }
+
+        function llenarSacerdotes() {
+            const selectsForm = document.querySelectorAll('.select-sacerdote-form');
+            const filterSelect = document.getElementById('filterSacerdote');
+            let optionsHTML = ''; 
+            let filterHTML = '<option value="todos">Todos los sacerdotes</option>'; 
+            let defaultId = '';
+            localData.sacerdotes.forEach(s => {
+                let isDefecto = s.esDefecto === true || s.esDefecto === 'TRUE'; 
+                if(isDefecto) defaultId = s.nombre;
+                optionsHTML += `<option value="${s.nombre}">${s.nombre} ${isDefecto ? '(Predeterminado)' : ''}</option>`;
+                filterHTML += `<option value="${s.nombre}">${s.nombre}</option>`;
+            });
+            selectsForm.forEach(s => { 
+                s.innerHTML = optionsHTML; 
+                if(defaultId) s.value = defaultId; 
+            });
+            let currentFilter = filterSelect.value; 
+            filterSelect.innerHTML = filterHTML;
+            if (currentFilter && currentFilter !== 'todos') filterSelect.value = currentFilter;
+        }
+
+        function obtenerDatosFiltrados() {
+            const tipo = document.getElementById('filterTipo').value; 
+            const sac = document.getElementById('filterSacerdote').value;
+            return localData.intenciones.filter(i => {
+                let mTipo = true; 
+                if (tipo === 'Comunitaria') mTipo = i.tipo.includes('Comunitaria'); 
+                else if (tipo === 'Particular') mTipo = i.tipo === 'Particular';
+                let mSac = true; 
+                if (sac !== 'todos') mSac = i.sacerdote === sac;
+                return mTipo && mSac;
+            });
+        }
+
+        /* =========================================
+           NUEVO: TARJETAS DE ESTADÍSTICAS (solo visual)
+           ========================================= */
+        function actualizarStats() {
+            const comTag = document.getElementById('statComunitarias');
+            const parTag = document.getElementById('statParticulares');
+            const conTag = document.getElementById('statContinuas');
+            const donut = document.getElementById('donutRing');
+            if (!comTag || !parTag || !conTag || !donut) return;
+
+            let hoy = new Date(); 
+            hoy.setHours(0,0,0,0);
+            let futuros = localData.intenciones.filter(i => {
+                let p = i.fechaMisa.split('-');
+                return new Date(p[0], p[1]-1, p[2]) >= hoy;
+            });
+
+            let nCom = futuros.filter(i => i.tipo === 'Comunitaria').length;
+            let nPar = futuros.filter(i => i.tipo === 'Particular').length;
+            let nCon = futuros.filter(i => i.tipo === 'Comunitaria Continua').length;
+            let total = nCom + nPar + nCon;
+
+            comTag.innerText = nCom;
+            parTag.innerText = nPar;
+            conTag.innerText = nCon;
+
+            if (total === 0) {
+                donut.style.setProperty('--seg1', '0deg');
+                donut.style.setProperty('--seg2', '0deg');
+                return;
+            }
+            let deg1 = (nCom / total) * 360;
+            let deg2 = deg1 + (nPar / total) * 360;
+            donut.style.setProperty('--seg1', deg1 + 'deg');
+            donut.style.setProperty('--seg2', deg2 + 'deg');
+        }
+
+        function renderSideList() {
+            const modo = document.getElementById('vistaLista').value; 
+            const container = document.getElementById('sideEventsList');
+            const dataFiltrada = obtenerDatosFiltrados(); 
+            let hoy = new Date(); 
+            hoy.setHours(0,0,0,0);
+            let eventos = dataFiltrada.filter(i => new Date(i.fechaMisa.split('-')[0], i.fechaMisa.split('-')[1]-1, i.fechaMisa.split('-')[2]) >= hoy).sort((a,b) => new Date(a.fechaMisa) - new Date(b.fechaMisa));
+            document.getElementById('contadorMisas').innerText = eventos.length;
+            actualizarStats();
+            if(eventos.length === 0) { 
+                container.innerHTML = `<div class="p-4 text-center border rounded-3"><i class="fa-regular fa-calendar-xmark fa-2x mb-2" style="color: var(--text-muted); opacity: 0.5;"></i><p class="text-muted small mb-0">No hay misas programadas</p></div>`; 
+                return; 
+            }
+            let html = '';
+            if (modo === 'resumen') {
+                let r = {}; 
+                eventos.forEach(int => { 
+                    let t = int.tipo.includes('Comunitaria') ? 'Comunitaria' : 'Particular'; 
+                    let k = `${int.fechaMisa}|${int.horaMisa}|${t}`; 
+                    if(!r[k]) r[k] = { f: int.fechaMisa, h: int.horaMisa, t: t, q: 0 }; 
+                    r[k].q++; 
+                });
+                Object.values(r).forEach(v => { 
+                    html += `<div class="event-card ${v.t==='Particular' ? 'is-particular' : ''}" onclick="abrirModal('${v.f}', '${v.t}', '${v.h}')">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="event-card-tag ${v.t==='Comunitaria' ? 'txt-comunitaria' : 'txt-particular'}">Misa ${v.t}</span>
+                            <span class="text-muted" style="font-size:0.7rem;">${v.h}</span>
+                        </div>
+                        <h6 class="fw-bold mb-0" style="font-size:0.88rem;">${formatearFechaUX(v.f)}</h6>
+                        <p class="text-muted small mb-0 mt-1">${v.q} ${v.q === 1 ? 'intención' : 'intenciones'} registradas</p>
+                    </div>`; 
+                });
+            } else {
+                eventos.forEach(int => { 
+                    let isContinua = int.tipo === 'Comunitaria Continua';
+                    let esComunitaria = int.tipo.includes('Comunitaria');
+                    html += `<div class="event-card ${esComunitaria ? '' : 'is-particular'}" onclick="abrirModal('${int.fechaMisa}', '${int.tipo}', '${int.horaMisa}')">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="event-card-tag ${esComunitaria ? 'txt-comunitaria' : 'txt-particular'}">${formatearFechaUX(int.fechaMisa)} · ${int.horaMisa}</span>
+                            ${isContinua ? '<i class="fa-solid fa-repeat" style="color: var(--continua); font-size:0.75rem;"></i>' : ''}
+                        </div>
+                        <h6 class="fw-bold mb-0 text-truncate" style="font-size:0.85rem;" title="${int.intencion}">${int.intencion}</h6>
+                    </div>`; 
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function initCalendar() { 
+            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), { 
+                initialView: 'dayGridMonth', 
+                locale: 'es', 
+                height: 'auto', 
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' }, 
+                events: mapearEventos(), 
+                eventClick: function(info) { 
+                    abrirModal(info.event.startStr, info.event.extendedProps.tipo, info.event.extendedProps.hora); 
+                } 
+            }); 
+            calendar.render(); 
+        }
         
-        if (data.success) {
-          lista.innerHTML = '';
-          let hayActivo = false;
-          
-          data.data.forEach(sac => {
-            const nombre = sac[0];
-            const estado = sac[1]; 
-            const esActivo = (estado && estado.toString().toUpperCase() === 'ACTIVO');
+        function mapearEventos() { 
+            let r = {}; 
+            obtenerDatosFiltrados().forEach(int => { 
+                let t = int.tipo.includes('Comunitaria') ? 'Comunitaria' : 'Particular'; 
+                let c = `${int.fechaMisa}_${t}_${int.horaMisa}`; 
+                if(!r[c]) r[c] = { f: int.fechaMisa, t: t, h: int.horaMisa, q: 0 }; 
+                r[c].q++; 
+            }); 
+            return Object.values(r).map(v => ({ 
+                title: v.t === 'Comunitaria' ? `${v.q} Com` : `1 Part`, 
+                start: v.f, 
+                extendedProps: { tipo: v.t, hora: v.h }, 
+                classNames:[v.t === 'Comunitaria' ? 'event-comunitaria' : 'event-particular'] 
+            })); 
+        }
+        
+        function refrescarVistasLocales() { 
+            if(calendar) {
+                calendar.removeAllEvents(); 
+                calendar.addEventSource(mapearEventos()); 
+            }
+            renderSideList(); 
+        }
+        
+        async function refrescarDataTotal() { 
+            await cargarDatosIniciales(); 
+            refrescarVistasLocales(); 
+        }
+        
+        function formatearFechaUX(fStr) { 
+            const m =['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']; 
+            let p = fStr.split('-'); 
+            return `${parseInt(p[2])} ${m[parseInt(p[1])-1]}, ${p[0]}`; 
+        }
+        
+        function actualizarHorariosComunitaria() { 
+            const f = document.getElementById('c_fecha').value; 
+            if(!f) return; 
+            const d = new Date(f.split('-')[0], f.split('-')[1] - 1, f.split('-')[2]); 
+            document.getElementById('c_hora').innerHTML = (d.getDay() === 0) ? 
+                `<option value="9:00 AM">9:00 AM</option><option value="12:00 PM">12:00 PM</option><option value="6:00 PM">6:00 PM</option>` : 
+                `<option value="6:00 PM">6:00 PM</option>`; 
+        }
+
+        /* =========================================
+           FRECUENCIAS / CONTINUAS
+           ========================================= */
+        function toggleFrecuencia() {
+            let tipo = document.querySelector('input[name="fc_tipo"]:checked').value;
+            document.getElementById('bloque_fechas').style.display = (tipo === 'rango' || tipo === 'dias') ? 'block' : 'none';
+            document.getElementById('bloque_mes').style.display = (tipo === 'mes') ? 'block' : 'none';
+            document.getElementById('bloque_dias_semana').style.display = (tipo === 'dias') ? 'block' : 'none';
+            document.getElementById('bloque_domingos').style.display = (tipo === 'rango') ? 'block' : 'none';
+        }
+
+        function generarArregloFechas() {
+            let tipo = document.querySelector('input[name="fc_tipo"]:checked').value;
+            let fechas = [];
+            const agregarDia = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
             
-            if (esActivo) {
-              document.getElementById('input-sacerdote-activo').value = nombre;
-              hayActivo = true;
+            if (tipo === 'rango' || tipo === 'dias') {
+                if(!document.getElementById('fc_inicio').value || !document.getElementById('fc_fin').value) return [];
+                let start = new Date(document.getElementById('fc_inicio').value + 'T12:00:00');
+                let end = new Date(document.getElementById('fc_fin').value + 'T12:00:00');
+                let exDom = document.getElementById('fc_excluir_dom').checked;
+                let validDays = [];
+                
+                if(tipo === 'dias') { 
+                    document.querySelectorAll('.fc_day:checked').forEach(chk => validDays.push(parseInt(chk.value))); 
+                    if(validDays.length === 0) return [];
+                }
+                
+                for(let d = start; d <= end; d = agregarDia(d)) {
+                    if (tipo === 'rango' && exDom && d.getDay() === 0) continue;
+                    if (tipo === 'dias' && !validDays.includes(d.getDay())) continue;
+                    fechas.push(d.toISOString().split('T')[0]);
+                }
+            } else if (tipo === 'mes') {
+                if(!document.getElementById('fc_mes_input').value) return [];
+                let [y, m] = document.getElementById('fc_mes_input').value.split('-');
+                let d = new Date(y, m-1, 1, 12, 0, 0);
+                while(d.getMonth() === parseInt(m)-1) { 
+                    if (d.getDay() !== 0) fechas.push(d.toISOString().split('T')[0]); 
+                    d = agregarDia(d); 
+                }
+            }
+            return fechas;
+        }
+
+        /* =========================================
+           GUARDADOS
+           ========================================= */
+        async function guardarComunitaria(e) { 
+            e.preventDefault(); 
+            const btn = document.getElementById('btnComunitaria'); 
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...'; 
+            btn.disabled = true;
+            
+            const payload = { 
+                fechaMisa: document.getElementById('c_fecha').value, 
+                horaMisa: document.getElementById('c_hora').value, 
+                sacerdote: "Por definir", 
+                categoria: document.getElementById('c_categoria').value, 
+                textoIntenciones: document.getElementById('c_text').value 
+            };
+            
+            const r = await fetchAPI('saveComunitarias', payload);
+            btn.innerHTML = originalHtml; 
+            btn.disabled = false; 
+            
+            if(r) { 
+                Toast.fire({ icon: 'success', title: 'Misa comunitaria guardada' }); 
+                document.getElementById('formComunitaria').reset(); 
+                await refrescarDataTotal(); 
+            }
+        }
+
+        async function guardarParticular(e) { 
+            e.preventDefault(); 
+            const btn = document.getElementById('btnParticular'); 
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...'; 
+            btn.disabled = true;
+            
+            let baseMotivo = document.getElementById('p_motivo').value;
+            let quienOfrece = document.getElementById('p_quien').value;
+            let motivoFinal = baseMotivo;
+            if (quienOfrece.trim() !== "") {
+                motivoFinal += (motivoFinal ? "\n\n" : "") + "✝️ Ofrecido por: " + quienOfrece;
+            }
+
+            const payload = { 
+                fechaMisa: document.getElementById('p_fecha').value, 
+                horaMisa: document.getElementById('p_hora').value, 
+                sacerdote: document.getElementById('p_sacerdote').value, 
+                categoria: document.getElementById('p_categoria').value, 
+                intencion: document.getElementById('p_intencion').value, 
+                motivo: motivoFinal 
+            };
+            
+            const r = await fetchAPI('saveParticular', payload);
+            btn.innerHTML = originalHtml; 
+            btn.disabled = false; 
+            
+            if(r) { 
+                Toast.fire({ icon: 'success', title: 'Misa particular registrada' }); 
+                document.getElementById('formParticular').reset(); 
+                llenarSacerdotes(); 
+                await refrescarDataTotal(); 
+            }
+        }
+
+        async function guardarContinuas(e) { 
+            e.preventDefault(); 
+            let arreglo = generarArregloFechas(); 
+            if(arreglo.length === 0) return Swal.fire('Atención', 'No hay fechas válidas para agendar.', 'warning');
+            
+            const confirm = await Swal.fire({ 
+                title: 'Confirmar', 
+                text: `Se agendarán ${arreglo.length} misas continuas.`, 
+                icon: 'question', 
+                showCancelButton: true,
+                confirmButtonText: 'Sí, agendar',
+                cancelButtonText: 'Cancelar'
+            }); 
+            if(!confirm.isConfirmed) return;
+            
+            const btn = document.getElementById('btnContinuas'); 
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Procesando...'; 
+            btn.disabled = true;
+            
+            let payload = arreglo.map(f => ({ 
+                fechaMisa: f, 
+                horaMisa: "6:00 PM", 
+                categoria: document.getElementById('fc_categoria').value, 
+                intencion: document.getElementById('fc_intencion').value, 
+                sacerdote: "Por definir", 
+                motivo: "Misa Continua",
+                tipo: "Comunitaria Continua"
+            }));
+            
+            const r = await fetchAPI('saveContinuas', payload);
+            btn.innerHTML = originalHtml; 
+            btn.disabled = false;
+            
+            if(r) { 
+                Swal.fire({ icon: 'success', title: 'Completado', text: `Se agendaron ${arreglo.length} misas.`, timer: 2000, showConfirmButton: false });
+                document.getElementById('formContinuas').reset(); 
+                toggleFrecuencia();
+                document.querySelector('input[name="fc_tipo"][value="rango"]').checked = true;
+                await refrescarDataTotal(); 
+            }
+        }
+
+        /* =========================================
+           MODALES CON DRAG & DROP
+           ========================================= */
+        function abrirModal(fecha, tipo, hora) { 
+            if (tipo.includes('Comunitaria')) {
+                abrirModalComunitaria(fecha, hora);
+            } else {
+                abrirModalParticular(fecha, hora);
+            }
+        }
+        
+        function abrirModalComunitaria(fecha, hora) {
+            let intenciones = localData.intenciones.filter(i => 
+                i.fechaMisa === fecha && 
+                i.horaMisa === hora &&
+                i.tipo.includes('Comunitaria')
+            );
+            
+            const modalTitle = document.getElementById('diaModalTitle');
+            modalTitle.innerHTML = `Misas del ${formatearFechaUX(fecha)} - ${hora}`;
+            
+            let misasPorCategoria = {};
+            CATEGORIAS_OFICIALES.forEach(cat => { misasPorCategoria[cat] = []; });
+            
+            intenciones.forEach(int => {
+                if(misasPorCategoria[int.categoria]) {
+                    misasPorCategoria[int.categoria].push(int);
+                }
+            });
+            
+            let html = `<div class="mass-header">${hora}</div>`;
+            
+            for(let cat of CATEGORIAS_OFICIALES) {
+                let ints = misasPorCategoria[cat];
+                let normales = ints.filter(i => i.tipo === 'Comunitaria');
+                let continuas = ints.filter(i => i.tipo === 'Comunitaria Continua');
+                
+                html += `<div class="category-wrapper">
+                    <div class="category-header d-flex justify-content-between align-items-center">
+                        <span>${cat}</span>
+                        <span class="badge" style="background: var(--primary-light); color: var(--primary); border-radius: 40px; padding: 4px 10px;">${ints.length}</span>
+                    </div>
+                    <div class="p-2">
+                        <ul class="sortable-list" data-categoria="${cat}" data-grupo="${fecha}_${hora}">`;
+                
+                normales.forEach(i => {
+                    html += `<li class="intention-item" data-id="${i.id}">
+                        <i class="fa-solid fa-grip-vertical drag-handle"></i>
+                        <input type="text" class="inline-input" value="${escapeHtml(i.intencion)}" readonly onkeydown="checkEnter(event, this)">
+                        <button class="action-btn" onclick="toggleEdit(this, '${i.id}')"><i class="fa-solid fa-pen"></i></button>
+                    </li>`;
+                });
+                
+                html += `</ul>`;
+                
+                if(continuas.length > 0) {
+                    html += `<div class="mt-2 pt-2 border-top mx-2 mb-2">
+                        <span class="badge" style="background: var(--continua-light); color: var(--continua); border-radius: 40px; padding: 4px 10px; margin-bottom: 8px; display: inline-block;">
+                            <i class="fa-solid fa-repeat me-1"></i> Misas Continuas
+                        </span>
+                        <ul class="list-unstyled mb-0">`;
+                    continuas.forEach(i => {
+                        html += `<li class="d-flex align-items-center mb-2 ps-3 border-start border-3" style="border-color: var(--continua) !important;">
+                            <input type="text" class="inline-input" style="color: var(--continua); font-weight: 700;" value="${escapeHtml(i.intencion)}" readonly onkeydown="checkEnter(event, this)">
+                            <button class="action-btn" onclick="toggleEdit(this, '${i.id}')"><i class="fa-solid fa-pen"></i></button>
+                        </li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+                
+                html += `</div></div>`;
             }
             
-            lista.innerHTML += `
-              <tr>
-                <td class="fw-semibold text-dark small">${nombre}</td>
-                <td class="text-end" style="width: 100px;">
-                  ${esActivo 
-                    ? '<span class="badge bg-success bg-opacity-10 text-success border border-success p-2 w-100">ACTIVO</span>' 
-                    : `<button class="btn btn-sm btn-outline-primary rounded-pill fw-bold w-100" onclick="activarSacerdote('${nombre}')">Activar</button>`}
-                 </td>
-              </tr>
-            `;
-          });
-          
-          if (!hayActivo) document.getElementById('input-sacerdote-activo').value = "";
+            document.getElementById('diaModalBody').innerHTML = html;
+            const modal = new bootstrap.Modal(document.getElementById('diaModal'));
+            modal.show();
+            initSortable(fecha, hora);
         }
-      } catch (e) {
-        lista.innerHTML = '<tr><td class="text-danger text-center py-3">Error de conexión.</td></tr>';
-      }
-    }
+        
+        function abrirModalParticular(fecha, hora) {
+            const intencion = localData.intenciones.find(i => 
+                i.tipo === 'Particular' && 
+                i.fechaMisa === fecha && 
+                i.horaMisa === hora
+            );
+            
+            if(intencion) {
+                currentParticularId = intencion.id;
+                document.getElementById('partCategoria').innerHTML = intencion.categoria;
+                document.getElementById('partIntencion').innerHTML = intencion.intencion;
+                document.getElementById('partFechaHora').innerHTML = `${formatearFechaUX(fecha)} - ${hora}`;
+                document.getElementById('partMotivo').innerHTML = intencion.motivo || 'Sin motivo especificado';
+                new bootstrap.Modal(document.getElementById('particularModal')).show();
+            }
+        }
 
-    async function agregarSacerdote() {
-      const input = document.getElementById('nuevo-sacerdote');
-      const nombre = input.value.trim();
-      if (!nombre) return;
-      
-      const btn = document.getElementById('btn-add-sac');
-      btn.disabled = true;
-      btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div>';
-      
-      try {
-        await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'agregar_sacerdote', nombre: nombre }) });
-        input.value = '';
-        await cargarSacerdotesLista();
-      } catch(e) { alert('Error al agregar sacerdote'); } 
-      finally { btn.disabled = false; btn.innerHTML = 'Agregar'; }
-    }
-
-    async function activarSacerdote(nombre) {
-      const lista = document.getElementById('lista-sacerdotes');
-      lista.innerHTML = '<tr><td class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div> Actualizando...</td></tr>';
-      try {
-        await fetch(API_BAUTISMO, { method: 'POST', body: JSON.stringify({ accion: 'activar_sacerdote', nombre: nombre }) });
-        await cargarSacerdotesLista();
-        await cargarSacerdotesSilencioso(); 
-      } catch(e) { alert('Error al activar sacerdote'); await cargarSacerdotesLista(); }
-    }
-  </script>
+        function escapeHtml(text) {
+            if(!text) return '';
+            return text.replace(/[&<>]/g, function(m) {
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        /* =========================================
+           DRAG & DROP Y EDICIÓN
+           ========================================= */
+        function initSortable(fecha, hora) {
+            document.querySelectorAll('.sortable-list').forEach(list => {
+                new Sortable(list, {
+                    group: list.getAttribute('data-grupo'),
+                    animation: 200,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function(e) {
+                        let newCategoria = e.to.getAttribute('data-categoria');
+                        let oldCategoria = e.from.getAttribute('data-categoria');
+                        if (newCategoria !== oldCategoria && e.item.getAttribute('data-id')) {
+                            guardarCambioEnFondo(e.item.getAttribute('data-id'), e.item.querySelector('.inline-input').value, newCategoria);
+                        }
+                    }
+                });
+            });
+        }
+        
+        function toggleEdit(btn, id) { 
+            let li = btn.closest('li'); 
+            let inp = li.querySelector('.inline-input'); 
+            let icon = btn.querySelector('i'); 
+            
+            if (inp.hasAttribute('readonly')) { 
+                inp.removeAttribute('readonly'); 
+                inp.focus(); 
+                let val = inp.value; 
+                inp.value = ''; 
+                inp.value = val; 
+                inp.classList.add('editing'); 
+                icon.classList.replace('fa-pen', 'fa-check'); 
+            } else { 
+                inp.setAttribute('readonly', true); 
+                inp.classList.remove('editing'); 
+                icon.classList.replace('fa-check', 'fa-pen'); 
+                let categoria = li.closest('.category-wrapper') ? li.closest('.category-wrapper').querySelector('.sortable-list').getAttribute('data-categoria') : null;
+                if(categoria) {
+                    guardarCambioEnFondo(id, inp.value, categoria);
+                } else {
+                    guardarCambioEnFondo(id, inp.value, null);
+                }
+            } 
+        }
+        
+        function checkEnter(ev, inp) { 
+            if(ev.key === 'Enter') { 
+                ev.preventDefault(); 
+                let btn = inp.parentElement.querySelector('.action-btn');
+                if(btn) toggleEdit(btn, inp.parentElement.getAttribute('data-id') || currentParticularId);
+                inp.blur();
+            } 
+        }
+        
+        async function guardarCambioEnFondo(id, texto, categoria) { 
+            if(!id) return;
+            Toast.fire({ icon: 'info', title: 'Guardando...', timer: false }); 
+            let idx = localData.intenciones.findIndex(i => i.id === id); 
+            if (idx !== -1) { 
+                localData.intenciones[idx].intencion = texto; 
+                if(categoria) localData.intenciones[idx].categoria = categoria;
+            } 
+            const r = await fetchAPI('updateIntencion', { id: id, intencion: texto, categoria: categoria }); 
+            if (r) { 
+                Toast.fire({ icon: 'success', title: 'Cambio guardado' }); 
+                refrescarVistasLocales(); 
+            } 
+        }
+        
+        async function editarParticular() { 
+            const { value: f } = await Swal.fire({ 
+                title: 'Editar Misa Particular', 
+                html: `
+                    <input id="swal-intencion" class="swal2-input" style="width:90%; margin:10px auto;" placeholder="Intención" value="${escapeHtml(document.getElementById('partIntencion').innerText)}">
+                    <select id="swal-categoria" class="swal2-input" style="width:90%; margin:10px auto;">
+                        <option value="Por la Salud" ${document.getElementById('partCategoria').innerText == 'Por la Salud' ? 'selected' : ''}>Por la Salud</option>
+                        <option value="Por la Vida y la Salud" ${document.getElementById('partCategoria').innerText == 'Por la Vida y la Salud' ? 'selected' : ''}>Por la Vida y la Salud</option>
+                        <option value="En Acción de Gracias" ${document.getElementById('partCategoria').innerText == 'En Acción de Gracias' ? 'selected' : ''}>En Acción de Gracias</option>
+                        <option value="Por el Alma" ${document.getElementById('partCategoria').innerText == 'Por el Alma' ? 'selected' : ''}>Por el Alma</option>
+                    </select>
+                    <textarea id="swal-motivo" class="swal2-textarea" style="width:90%; margin:10px auto;" placeholder="Motivo" rows="3">${escapeHtml(document.getElementById('partMotivo').innerText)}</textarea>
+                `, 
+                focusConfirm: false, 
+                showCancelButton: true, 
+                confirmButtonText: 'Guardar', 
+                preConfirm: () => {
+                    return {
+                        intencion: document.getElementById('swal-intencion').value,
+                        categoria: document.getElementById('swal-categoria').value,
+                        motivo: document.getElementById('swal-motivo').value
+                    }
+                } 
+            }); 
+            
+            if (f) { 
+                bootstrap.Modal.getInstance(document.getElementById('particularModal')).hide(); 
+                await guardarCambioEnFondo(currentParticularId, f.intencion, f.categoria);
+                let idx = localData.intenciones.findIndex(i => i.id === currentParticularId);
+                if(idx !== -1) localData.intenciones[idx].motivo = f.motivo;
+                await fetchAPI('updateIntencion', { id: currentParticularId, motivo: f.motivo });
+            } 
+        }
+    </script>
 </body>
 </html>
