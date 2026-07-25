@@ -1,0 +1,392 @@
+<!--
+  ============================================================================
+  MÓDULO "CANDIDATOS A BAUTISMO" — para integrar en tu SICA (index.html)
+  ============================================================================
+  CÓMO INTEGRARLO:
+  1) Pega el bloque <!-- 1. NAV --> dentro de tu <aside class="sidebar">,
+     justo debajo del botón "Confirmación" (y su gemelo en el menú móvil).
+  2) Pega el bloque <!-- 2. VISTA --> dentro de tu <main class="main-content">,
+     junto a los otros <div class="vista-app">.
+  3) Pega el bloque <!-- 3. OFFCANVAS FORM --> junto a tu <div id="panelDetalle">.
+  4) Pega el bloque <!-- 4. VISTA DE IMPRESIÓN --> justo antes de </body>.
+  5) Pega el bloque <style> dentro de tu <style> existente.
+  6) Pega el <script> al final de tu <script> existente (usa las mismas
+     variables API_BAUTISMO / normalizarTexto del frontend que ya tienes).
+
+  Este archivo también funciona SOLO (ábrelo en el navegador) con datos de
+  ejemplo para que puedas probar el diseño y la impresión 2-por-A4 antes
+  de integrarlo. Busca "DATOS DE EJEMPLO" abajo para desactivarlo cuando
+  lo conectes a tu API real.
+  ============================================================================
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Candidatos a Bautismo · SICA</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+  body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafd;padding:2rem;}
+  :root{--brand-navy:#002266;--brand-accent:#0055ff;}
+
+  /* ---- estilos reutilizados de tu app (form-control-custom, btn, etc.) ---- */
+  .form-control-custom{background:#f1f3f7;border:2px solid transparent;border-radius:12px;padding:.65rem 1rem;}
+  .form-control-custom:focus{background:#fff;border-color:var(--brand-accent);box-shadow:0 0 0 4px rgba(0,85,255,.1);outline:0;}
+  .btn-primary-custom{background:var(--brand-navy);color:#fff;border:none;border-radius:14px;padding:.85rem 1rem;font-weight:700;}
+  .btn-action{background:#f1f3f7;color:var(--brand-navy);border:none;border-radius:10px;padding:.5rem 1rem;font-weight:600;}
+  .btn-action:hover{background:var(--brand-navy);color:#fff;}
+  .table-container{background:#fff;border-radius:20px;overflow-x:auto;}
+  .table thead th{background:#f8fafd;padding:1rem;font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#5e6673;border:none;}
+  .table tbody td{padding:1rem;vertical-align:middle;border-bottom:1px solid #f1f3f7;}
+  .badge-pendiente{background:#fff4e5;color:#b26a00;border:1px solid #ffcc80;}
+  .badge-impreso{background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;}
+
+  /* =========================================================================
+     4. VISTA DE IMPRESIÓN — 2 fichas por hoja A4
+     ========================================================================= */
+  #print-area{display:none;}
+
+  .ficha-bautizo{
+    width:100%;
+    border:2px solid #000;
+    padding:14px 18px;
+    box-sizing:border-box;
+    font-family:'Georgia', 'Times New Roman', serif;
+    font-size:11px;
+    color:#000;
+    background:#fff;
+  }
+  .ficha-bautizo .ficha-header{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-weight:700; font-style:italic; font-size:12px; margin-bottom:10px;
+  }
+  .ficha-bautizo .ficha-titulo{
+    text-align:center; font-weight:700; font-style:italic; text-decoration:underline;
+    font-size:12.5px; margin-bottom:14px;
+  }
+  .ficha-bautizo .ficha-fila{
+    display:flex; margin-bottom:9px; line-height:1.3;
+  }
+  .ficha-bautizo .ficha-label{
+    flex:0 0 240px; font-weight:600;
+  }
+  .ficha-bautizo .ficha-dospuntos{ flex:0 0 14px; }
+  .ficha-bautizo .ficha-valor{
+    flex:1; border-bottom:1px dotted transparent;
+  }
+  .ficha-bautizo .ficha-footer{
+    display:flex; justify-content:space-between; margin-top:8px;
+  }
+  .ficha-bautizo .ficha-firma{
+    text-align:center; margin-top:34px;
+  }
+  .ficha-bautizo .ficha-firma .linea{ border-top:1px solid #000; width:260px; margin:0 auto 4px; }
+
+  /* Grilla de impresión: 2 fichas apiladas por hoja A4 */
+  @media print{
+    body *{ visibility:hidden; }
+    #print-area, #print-area *{ visibility:visible; }
+    #print-area{
+      display:block; position:absolute; top:0; left:0; width:100%;
+    }
+    .hoja-a4{
+      width:210mm; min-height:297mm; margin:0 auto; padding:10mm;
+      box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between;
+      page-break-after:always;
+    }
+    .hoja-a4:last-child{ page-break-after:auto; }
+    .hoja-a4 .ficha-bautizo{ height:135mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h3 class="fw-bold mb-4"><i class="fas fa-baby me-2 text-primary"></i>Candidatos a Bautismo (en preparación)</h3>
+
+  <!-- 1. NAV (referencia — este botón va en tu sidebar real) -->
+  <!--
+  <button class="nav-pill-custom" onclick="setModulo('candidatos')" id="btn-mod-candidatos">
+    <i class="fas fa-baby me-2"></i><span class="sidebar-text">Candidatos</span>
+  </button>
+  -->
+
+  <!-- 2. VISTA -->
+  <div id="tab-candidatos" class="vista-app">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div class="flex-grow-1" style="max-width:420px;">
+        <input type="text" id="cand-search-input" class="form-control form-control-custom"
+               placeholder="Buscar candidato por nombre o padres...">
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-action" onclick="abrirFormCandidato()">
+          <i class="fas fa-user-plus me-1"></i> Nuevo candidato
+        </button>
+        <button class="btn btn-primary-custom" style="width:auto;" onclick="imprimirSeleccionados()">
+          <i class="fas fa-print me-1"></i> Imprimir seleccionados (<span id="cand-count-sel">0</span>)
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container shadow-sm">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th style="width:36px;"><input type="checkbox" id="cand-check-all" onclick="toggleTodos(this)"></th>
+            <th>ID</th><th>Bautizado</th><th>Fecha prog.</th><th>Padres</th><th>Estado</th><th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="cand-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. OFFCANVAS FORM (usa <div class="offcanvas..."> de Bootstrap tal como el resto de tu app) -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="panelCandidato" style="width:480px;">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title fw-bold" id="cand-form-titulo">Nuevo candidato</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <input type="hidden" id="cand-id">
+      <div class="mb-2"><label class="small fw-bold">Nombre del bautizado</label>
+        <input class="form-control form-control-custom" id="cand-nombre"></div>
+      <div class="row g-2 mb-2">
+        <div class="col-7"><label class="small fw-bold">Fecha bautismo prog.</label>
+          <input type="text" class="form-control form-control-custom" id="cand-fecha-bau" placeholder="SABADO, 25 DE JULIO DEL 2026"></div>
+        <div class="col-5"><label class="small fw-bold">Hora</label>
+          <input type="text" class="form-control form-control-custom" id="cand-hora" placeholder="4:00 p. m."></div>
+      </div>
+      <div class="mb-2"><label class="small fw-bold">Ministro del bautismo</label>
+        <input class="form-control form-control-custom" id="cand-ministro"></div>
+      <div class="row g-2 mb-2">
+        <div class="col-8"><label class="small fw-bold">Lugar de nacimiento</label>
+          <input class="form-control form-control-custom" id="cand-lugar-nac"></div>
+        <div class="col-4"><label class="small fw-bold">Fecha nac.</label>
+          <input type="text" class="form-control form-control-custom" id="cand-fecha-nac"></div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-7"><label class="small fw-bold">Nombre del padre</label>
+          <input class="form-control form-control-custom" id="cand-padre"></div>
+        <div class="col-5"><label class="small fw-bold">Lugar nac. padre</label>
+          <input class="form-control form-control-custom" id="cand-lugar-padre"></div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-7"><label class="small fw-bold">Nombre de la madre</label>
+          <input class="form-control form-control-custom" id="cand-madre"></div>
+        <div class="col-5"><label class="small fw-bold">Lugar nac. madre</label>
+          <input class="form-control form-control-custom" id="cand-lugar-madre"></div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-6"><label class="small fw-bold">Padrino</label>
+          <input class="form-control form-control-custom" id="cand-padrino"></div>
+        <div class="col-6"><label class="small fw-bold">Madrina</label>
+          <input class="form-control form-control-custom" id="cand-madrina"></div>
+      </div>
+      <div class="mb-2"><label class="small fw-bold">Dirección</label>
+        <input class="form-control form-control-custom" id="cand-direccion"></div>
+      <div class="mb-3"><label class="small fw-bold">Celular(es)</label>
+        <input class="form-control form-control-custom" id="cand-celular" placeholder="972672087 - 920020021"></div>
+      <button class="btn btn-primary-custom w-100" onclick="guardarCandidato()">
+        <i class="fas fa-save me-1"></i> Guardar candidato
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-5 pt-4 border-top">
+    <p class="text-muted small">Vista previa en pantalla de la ficha (se oculta al imprimir; en impresión solo se ve <code>#print-area</code>):</p>
+  </div>
+</div>
+
+<!-- 4. VISTA DE IMPRESIÓN (2 fichas por hoja A4) -->
+<div id="print-area"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ⚠️ Al integrar: reemplaza esto por tu const API_BAUTISMO ya existente.
+  const API_BAUTISMO = "https://script.google.com/macros/s/TU_DEPLOY_ID/exec";
+  const NOMBRE_PARROQUIA = 'COMUNIDAD PARROQUIAL "SAN PEDRO APÓSTOL"- TACNA';
+
+  let candidatos = [];
+  let panelCandidato;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    panelCandidato = new bootstrap.Offcanvas(document.getElementById('panelCandidato'));
+    cargarCandidatos(); // en producción llama a la API; aquí usa datos de ejemplo
+  });
+
+  // ============ DATOS DE EJEMPLO (bórralo al conectar tu API real) ============
+  function datosDeEjemplo() {
+    return [
+      { id:"C2026-0001", nombre_bautizado:"LIAM KALED MARIACA JIMENEZ", fecha_bautismo_prog:"SABADO, 25 DE JULIO DEL 2026",
+        hora:"4:00 p. m.", ministro:"Pbro. JHON JESÚS BARRERA JUÁREZ", lugar_nacimiento:"TACNA", fecha_nacimiento:"11 DE AGOSTO DEL 2024",
+        padre:"RUBEN ANTHONIO MARIACA MENDOZA", lugar_nac_padre:"CHINCHA - ICA", madre:"NOHELY SILVANA JIMENEZ BALDARRAGO",
+        lugar_nac_madre:"ILO", padrino:"", madrina:"LOANA NOEMI ZAVALA JIMENEZ", direccion:"CALLE SAN JOSÉ 114 - TACNA",
+        celular:"972672087 - 920020021", estado:"PENDIENTE" },
+      { id:"C2026-0002", nombre_bautizado:"VALENTINA ROSA QUISPE MAMANI", fecha_bautismo_prog:"SABADO, 25 DE JULIO DEL 2026",
+        hora:"4:00 p. m.", ministro:"Pbro. JHON JESÚS BARRERA JUÁREZ", lugar_nacimiento:"TACNA", fecha_nacimiento:"03 DE MARZO DEL 2025",
+        padre:"JOSE LUIS QUISPE FLORES", lugar_nac_padre:"TACNA", madre:"MARIA ELENA MAMANI CONDORI",
+        lugar_nac_madre:"TACNA", padrino:"CARLOS ALBERTO FLORES", madrina:"ANA LUCIA CONDORI", direccion:"AV. BOLOGNESI 220 - TACNA",
+        celular:"951223344", estado:"PENDIENTE" }
+    ];
+  }
+  // =============================================================================
+
+  async function cargarCandidatos(termino) {
+    // --- versión de ejemplo (sin backend) ---
+    candidatos = datosDeEjemplo();
+    // --- versión real, descomenta al integrar y borra la línea de arriba ---
+    // const res = await fetch(API_BAUTISMO, { method:'POST', body: JSON.stringify({ accion:'buscar_candidatos', termino: termino || '' }) });
+    // const data = await res.json();
+    // candidatos = data.data || [];
+    renderTablaCandidatos();
+  }
+
+  function renderTablaCandidatos() {
+    const tbody = document.getElementById('cand-tbody');
+    tbody.innerHTML = '';
+    candidatos.forEach((c, i) => {
+      const badge = c.estado === 'IMPRESO'
+        ? '<span class="badge badge-impreso">IMPRESO</span>'
+        : '<span class="badge badge-pendiente">PENDIENTE</span>';
+      tbody.innerHTML += `<tr>
+        <td><input type="checkbox" class="cand-check" data-idx="${i}" onchange="actualizarContador()"></td>
+        <td class="fw-bold text-primary small">${c.id}</td>
+        <td class="fw-semibold">${c.nombre_bautizado}</td>
+        <td class="small text-muted">${c.fecha_bautismo_prog || '-'}</td>
+        <td class="small text-muted">${(c.padre||'-')} y ${(c.madre||'-')}</td>
+        <td>${badge}</td>
+        <td><button class="btn btn-action btn-sm" onclick="editarDesdeTabla(${i})">Editar</button></td>
+      </tr>`;
+    });
+    actualizarContador();
+  }
+
+  function toggleTodos(cb) {
+    document.querySelectorAll('.cand-check').forEach(el => el.checked = cb.checked);
+    actualizarContador();
+  }
+  function actualizarContador() {
+    document.getElementById('cand-count-sel').innerText =
+      document.querySelectorAll('.cand-check:checked').length;
+  }
+
+  document.getElementById('cand-search-input')?.addEventListener('keypress', e => {
+    if (e.key === 'Enter') cargarCandidatos(e.target.value.trim());
+  });
+
+  function abrirFormCandidato() {
+    document.getElementById('cand-form-titulo').innerText = 'Nuevo candidato';
+    ['cand-id','cand-nombre','cand-fecha-bau','cand-hora','cand-ministro','cand-lugar-nac','cand-fecha-nac',
+     'cand-padre','cand-lugar-padre','cand-madre','cand-lugar-madre','cand-padrino','cand-madrina',
+     'cand-direccion','cand-celular'].forEach(id => document.getElementById(id).value = '');
+    panelCandidato.show();
+  }
+
+  function editarDesdeTabla(i) {
+    const c = candidatos[i];
+    document.getElementById('cand-form-titulo').innerText = 'Editar candidato';
+    document.getElementById('cand-id').value = c.id;
+    document.getElementById('cand-nombre').value = c.nombre_bautizado;
+    document.getElementById('cand-fecha-bau').value = c.fecha_bautismo_prog;
+    document.getElementById('cand-hora').value = c.hora;
+    document.getElementById('cand-ministro').value = c.ministro;
+    document.getElementById('cand-lugar-nac').value = c.lugar_nacimiento;
+    document.getElementById('cand-fecha-nac').value = c.fecha_nacimiento;
+    document.getElementById('cand-padre').value = c.padre;
+    document.getElementById('cand-lugar-padre').value = c.lugar_nac_padre;
+    document.getElementById('cand-madre').value = c.madre;
+    document.getElementById('cand-lugar-madre').value = c.lugar_nac_madre;
+    document.getElementById('cand-padrino').value = c.padrino;
+    document.getElementById('cand-madrina').value = c.madrina;
+    document.getElementById('cand-direccion').value = c.direccion;
+    document.getElementById('cand-celular').value = c.celular;
+    panelCandidato.show();
+  }
+
+  async function guardarCandidato() {
+    const datos = {
+      id: document.getElementById('cand-id').value,
+      nombre_bautizado: document.getElementById('cand-nombre').value.trim(),
+      fecha_bautismo_prog: document.getElementById('cand-fecha-bau').value.trim(),
+      hora: document.getElementById('cand-hora').value.trim(),
+      ministro: document.getElementById('cand-ministro').value.trim(),
+      lugar_nacimiento: document.getElementById('cand-lugar-nac').value.trim(),
+      fecha_nacimiento: document.getElementById('cand-fecha-nac').value.trim(),
+      padre: document.getElementById('cand-padre').value.trim(),
+      lugar_nac_padre: document.getElementById('cand-lugar-padre').value.trim(),
+      madre: document.getElementById('cand-madre').value.trim(),
+      lugar_nac_madre: document.getElementById('cand-lugar-madre').value.trim(),
+      padrino: document.getElementById('cand-padrino').value.trim(),
+      madrina: document.getElementById('cand-madrina').value.trim(),
+      direccion: document.getElementById('cand-direccion').value.trim(),
+      celular: document.getElementById('cand-celular').value.trim()
+    };
+    if (!datos.nombre_bautizado) { alert('El nombre del bautizado es obligatorio.'); return; }
+
+    const accion = datos.id ? 'editar_candidato' : 'registrar_candidato';
+    // await fetch(API_BAUTISMO, { method:'POST', body: JSON.stringify({ accion, datos }) });
+    panelCandidato.hide();
+    cargarCandidatos();
+  }
+
+  // ===================== IMPRESIÓN: 2 FICHAS POR HOJA A4 =====================
+  function construirFicha(c) {
+    return `
+      <div class="ficha-bautizo">
+        <div class="ficha-header">
+          <span>${NOMBRE_PARROQUIA}</span>
+          <span>Hora: <u>${c.hora || '-------'}</u></span>
+        </div>
+        <div class="ficha-titulo">FICHA DE INSCRIPCIÓN PARA BAUTIZO</div>
+
+        <div class="ficha-fila"><div class="ficha-label">NOMBRE DE LA BAUTIZADO</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.nombre_bautizado||'-------'}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">FECHA DE BAUTISMO</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.fecha_bautismo_prog||'-------'}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">MINISTRO DEL BAUTISMO</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.ministro||'-------'}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">LUGAR Y FECHA DE NACIMIENTO</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${(c.lugar_nacimiento||'-------')}, ${(c.fecha_nacimiento||'-------')}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">NOMBRE Y APELLIDOS DEL PADRE</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.padre||'-------'}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">LUGAR DE NACIMIENTO DEL PADRE</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.lugar_nac_padre||'-------'}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">NOMBRE Y APELLIDOS DE LA MADRE</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.madre||'-------'}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">LUGAR DE NACIMIENTO DE LA MADRE</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.lugar_nac_madre||'-------'}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">NOMBRE Y APELLIDOS DEL PADRINO</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.padrino||'-------'}</div></div>
+        <div class="ficha-fila"><div class="ficha-label">NOMBRE Y APELLIDOS DE LA MADRINA</div><div class="ficha-dospuntos">:</div><div class="ficha-valor">${c.madrina||'-------'}</div></div>
+
+        <div class="ficha-footer">
+          <div>DIRECCIÓN: ${c.direccion||'-------'}</div>
+          <div>CELULAR: ${c.celular||'-------'}</div>
+        </div>
+        <div class="ficha-firma">
+          <div class="linea"></div>
+          <small>Firma del Sacerdote que bautizó</small>
+        </div>
+      </div>`;
+  }
+
+  async function imprimirSeleccionados() {
+    const idxSeleccionados = Array.from(document.querySelectorAll('.cand-check:checked')).map(el => +el.dataset.idx);
+    if (idxSeleccionados.length === 0) { alert('Selecciona al menos un candidato para imprimir.'); return; }
+    const seleccionados = idxSeleccionados.map(i => candidatos[i]);
+
+    // Agrupa de 2 en 2 -> una <div class="hoja-a4"> por cada 2 fichas
+    let html = '';
+    for (let i = 0; i < seleccionados.length; i += 2) {
+      const par = seleccionados.slice(i, i + 2);
+      html += `<div class="hoja-a4">
+        ${construirFicha(par[0])}
+        ${par[1] ? construirFicha(par[1]) : ''}
+      </div>`;
+    }
+    document.getElementById('print-area').innerHTML = html;
+
+    window.print();
+
+    // Marca como IMPRESO en la hoja (opcional, descomenta al integrar)
+    // const ids = seleccionados.map(c => c.id);
+    // await fetch(API_BAUTISMO, { method:'POST', body: JSON.stringify({ accion:'marcar_impreso_candidatos', ids }) });
+    // cargarCandidatos();
+  }
+</script>
+</body>
+</html>
